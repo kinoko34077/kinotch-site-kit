@@ -27,6 +27,13 @@ jobs:
         run: |
           npm ls --depth=0
           node -e "for(const x of ['@awesome.me/webawesome','@tanstack/hotkeys','@tanstack/react-hotkeys']) {const p=require('./node_modules/'+x+'/package.json');console.log(p.name,p.version,p.license);}"
+      - name: Inventory transitive versions/licenses (not legal approval)
+        run: node scripts/audit-dependencies.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m0-transitive-inventory
+          path: spikes/m0/artifacts/m0-dependency-inventory.json
+          retention-days: 14
       - name: Install Playwright Chromium and WebKit
         run: npx playwright install chromium webkit --with-deps
       - name: Execute pinned browser smoke tests
