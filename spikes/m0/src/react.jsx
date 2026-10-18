@@ -2,6 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useHotkeyRecorder } from '@tanstack/react-hotkeys';
+import { createSiteController, navigation, breadcrumbs } from '../../../packages/core/index.mjs';
+import { createReactStateAdapter } from '../../../packages/adapters/react.mjs';
+import { siteInputForPath } from './site-contract.js';
 import '@awesome.me/webawesome/dist/styles/webawesome.css';
 import './demo.css';
 import '@awesome.me/webawesome/dist/components/page/page.js';
@@ -17,6 +20,7 @@ const STORAGE_KEY = 'kinotch-site-kit-m0-demo-theme';
 
 function Fixture() {
   const [count, setCount] = useState(0);
+  const [coreSite, setCoreSite] = useState(null);
   const [recorded, setRecorded] = useState('未割当');
   const [mode, setMode] = useState(() => {
     try {
@@ -38,6 +42,15 @@ function Fixture() {
       return next;
     });
   };
+  useEffect(() => {
+    const controller = createSiteController(siteInputForPath(location.pathname));
+    controller.mount({}, createReactStateAdapter(setCoreSite));
+    window.__m0ReactCore = controller;
+    return () => {
+      controller.dispose();
+      window.__m0ReactCore = undefined;
+    };
+  }, []);
   useEffect(() => {
     window.__m0ReactMounted = true;
     return () => { window.__m0ReactMounted = false; };
@@ -131,13 +144,25 @@ function Fixture() {
           <input id="react-text" defaultValue="unchanged"/>
         </section>
       </div>
+      <section className="feature-status">
+        <h2>共通Coreのナビゲーション（M1技術試作）</h2>
+        <p>Vanilla JSと同じサイト設定を、Reactが自分の状態として表示しています。</p>
+        <nav id="core-react-nav" className="core-links" aria-label="共通Coreの経路">
+          {coreSite && navigation(coreSite).map(route =>
+            <a key={route.id} href={route.url} aria-current={route.id === 'react' ? 'page' : undefined}>{route.title}</a>
+          )}
+        </nav>
+        <p id="core-react-breadcrumbs" className="demo-note">
+          {coreSite ? breadcrumbs(coreSite, 'react').map(item => item.title).join(' › ') : '読み込み中'}
+        </p>
+      </section>
       <section id="react-status" className="feature-status">
         <h2>実装状況</h2>
         <div className="status-columns">
           <div><h3>試せる <span className="tag">サンプル</span></h3>
             <p>PC/スマホメニュー、テーマ切替、パンくず、React状態管理、キー記録、入力の保持。</p></div>
           <div><h3>今後作る <span className="tag pending">未実装</span></h3>
-            <p>サイトをまたぐ共通API、自由なホットキー割当、サイト別設定、標準ページ・検索・多言語・SEO。</p>
+            <p>共通Coreの正式なAPI・配布形式、自由なホットキー割当、サイト別設定、標準ページ・検索・多言語・SEOはまだ未完了。</p>
             <p><a href="https://github.com/kinoko34077/kinotch-site-kit/issues/10">ロードマップ ↗</a></p></div>
         </div>
       </section>
