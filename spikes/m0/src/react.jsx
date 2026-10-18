@@ -80,9 +80,9 @@ function Fixture() {
         <button id="react-desktop-menu-toggle" ref={desktopButton} className="menu-trigger desktop-only" type="button"
           aria-controls="react-desktop-menu" aria-expanded={desktopMenuOpen}
           onClick={() => setDesktopMenuOpen(v => !v)}>☰ メニュー</button>
-        <button id="react-theme" className="menu-trigger" type="button" data-mode={mode}
+        <button id="react-theme" className="menu-trigger icon-only-theme" type="button" data-mode={mode}
           aria-label={'現在 ' + LABELS[mode] + '。押すと表示モードを切替'} onClick={toggleTheme}>
-          <span id="react-theme-icon" aria-hidden="true">{ICONS[mode]}</span> <span id="react-theme-label">{LABELS[mode]}</span>
+          <span id="react-theme-icon" aria-hidden="true">{ICONS[mode]}</span>
         </button>
       </div>
       <nav id="react-desktop-menu" className="desktop-menu" ref={desktopMenu} aria-label="PC用メニュー" hidden={!desktopMenuOpen}>
