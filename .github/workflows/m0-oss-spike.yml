@@ -1,0 +1,35 @@
+name: M0 OSS composition spike (read-only public CI)
+on:
+  pull_request:
+    paths:
+      - 'spikes/m0/**'
+      - '.github/workflows/m0-oss-spike.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: spikes/m0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned direct OSS dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify direct package identity and license
+        run: |
+          npm ls --depth=0
+          node -e "for(const x of ['@awesome.me/webawesome','@tanstack/hotkeys','@tanstack/react-hotkeys']) {const p=require('./node_modules/'+x+'/package.json');console.log(p.name,p.version,p.license);}"
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Execute pinned browser smoke tests
+        run: npm run test:e2e
+      - name: Build both host fixtures
+        run: npm run build
