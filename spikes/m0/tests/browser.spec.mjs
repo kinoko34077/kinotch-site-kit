@@ -236,6 +236,30 @@ test('preview presents tested features separately from planned product features'
   await expect(page.locator('#menu-status')).toBeVisible();
 });
 
+test('M1 shared SiteDefinition generates the same route links in both hosts', async ({ page }) => {
+  await page.goto('./');
+  const vanilla = page.locator('#core-nav nav a');
+  await expect(vanilla).toHaveCount(2);
+  const a = await vanilla.evaluateAll(els => els.map(x => new URL(x.href).pathname));
+  expect(a[0]).toMatch(/\/$/);
+  expect(a[1]).toMatch(/\/react\.html$/);
+  const definition = await page.evaluate(() => ({
+    id: window.__m0.coreController.definition.id,
+    basePath: window.__m0.coreController.definition.basePath
+  }));
+  expect(definition.id).toBe('site-kit-preview');
+  await page.goto('./react.html');
+  const react = page.locator('#core-react-nav a');
+  await expect(react).toHaveCount(2);
+  expect(await react.evaluateAll(els => els.map(x => new URL(x.href).pathname))).toEqual(a);
+  await expect(page.locator('#core-react-breadcrumbs')).toContainText('Vanilla JS 版 › React 版');
+  const definition2 = await page.evaluate(() => ({
+    id: window.__m0ReactCore.definition.id,
+    basePath: window.__m0ReactCore.definition.basePath
+  }));
+  expect(definition2).toEqual(definition);
+});
+
 test('React desktop menu and icon cycle remain functional after state updates', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('./react.html');
