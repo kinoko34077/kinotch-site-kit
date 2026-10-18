@@ -1,6 +1,6 @@
 # M0.2 — OSS composition and technical feasibility audit (2026-10-18)
 
-**Owner:** [Issue #3](https://github.com/kinoko34077/kinotch-site-kit/issues/3). **Status: PARTIAL / MINIMAL VENDOR RUNTIME PROOF PASSED; FULL UX AND DEPENDENCY GATES UNVERIFIED**. Documentation/package registry research is not proof of installed, tested integration. No paid package or external account configured.
+**Owner:** [Issue #3](https://github.com/kinoko34077/kinotch-site-kit/issues/3). **Status: PARTIAL / VANILLA+REACT CHROMIUM+WEBKIT MINIMAL SMOKE PASS; COMPLETE M0 UX AND DEPENDENCY GATES UNVERIFIED**. Documentation/package registry research is not proof of installed, tested integration. No paid package or external account configured.
 
 ## 1. Candidate decision table (as of 2026-10-18)
 
@@ -30,7 +30,7 @@ Use `SiteDefinition` route/action registry independent of Web Awesome internal a
 | TanStack recorder exists vanilla & React | **DOC VERIFIED** | Run keyboard/IME/conflict, remount/dispose tests against `0.13.0` |
 | Stable TanStack API | **NOT PROVEN** (current docs/npm identify alpha) | lock exact version behind Site Kit facade; CI regression on upgrade |
 | Direct runtime packages installed in GitHub CI | **PASS** in public Ubuntu standard runner; isolated local path still BLOCKED | Record full frozen lockfile and transitive SBOM before release |
-| Live `wa-page`+TanStack combined demo | **SMOKE PASS** on pinned versions: 2 Playwright Chromium tests in vanilla and React | Broaden focus/IME/mobile/WebKit/CSS collision scenarios; real device separately |
+| Live `wa-page`+TanStack combined demo | **SMOKE PASS** on pinned versions: 4 Playwright tests (vanilla+React in Chromium+desktop WebKit) | Broaden focus/IME/mobile/WebKit/CSS collision scenarios; real device separately |
 | React 19 and vanilla host coexistence | **BASIC SMOKE PASS** with actual package imports + build of both host HTML; shared `SiteDefinition` and cross-repo collision still UNVERIFIED | Continue M1 contract + cross-host state, remount/focus/full scope tests |
 | Keyboard-focus/ARIA/default route | **UNVERIFIED** | Browser events/focus/IME and mobile viewport tests |
 | External-resource and policy safety | **UNVERIFIED** | Offline/self-host bundle, CSP, no third-party HTTP by default |
@@ -39,7 +39,7 @@ Use `SiteDefinition` route/action registry independent of Web Awesome internal a
 - Isolated execution environment: `node v22.16.0`, `npm v10.9.2`, local `/usr/bin/chromium`, Python Playwright installed.
 - `npm view @awesome.me/webawesome version --fetch-retries=0 --fetch-timeout=8000`: **FAILED EAI_AGAIN** DNS resolution of `registry.npmjs.org`. This establishes a **network/tool path failure, not incompatibility of Web Awesome**.
 - Local platform baseline Chromium navigation to `file:///...` and `http://127.0.0.1:<port>/...`: both **FAILED net::ERR_BLOCKED_BY_ADMINISTRATOR**. No successful browser scenario or successful vendor integration was observed; do not claim PASS.
-- **Recovery path completed for the narrow package/browser smoke via GitHub native public CI:** [PR #14](https://github.com/kinoko34077/kinotch-site-kit/pull/14), [run #39091136344](https://github.com/kinoko34077/kinotch-site-kit/actions/runs/39091136344). Details below. Other host/physical-device/performance/licenses remain unverified; no RDC or credential workaround used.
+- **Recovery path completed for the narrow package/browser smoke via GitHub native public CI:** [PR #14](https://github.com/kinoko34077/kinotch-site-kit/pull/14), [run #39091136344](https://github.com/kinoko34077/kinotch-site-kit/actions/runs/39091136344). Details below. Physical iPhone/older Safari and complete dependency/license/performance verification remain unverified; no RDC or credential workaround used.
 - Distinguish `UNVERIFIED` from fail: pending use of a normal project workflow means no technical rejection of selected vendors. Native CI execution may depend on Actions free quota; verify allowable route before execution. Avoid automatic paid providers.
 
 ## 6. Next technical checks in strict order
@@ -48,12 +48,18 @@ Use `SiteDefinition` route/action registry independent of Web Awesome internal a
 3. Audit dependency trees and free/Pro boundary. Test alternative UI provider only if a hard failure or prohibitive size/styling collision is verified.
 4. Converge with [M0 site inventory](M0_SITE_INVENTORY.md) for architecture gate. Keep M1 implementation blocked until M0 acceptance criteria or explicitly narrowed, recorded exceptions.
 
-**Disposition: Issue #3 remains OPEN**. A runnable pinned direct-dependency M0 fixture exists and has a two-host Chromium smoke PASS. **Production package, full contract, other browsers/IME/mobile and transitive licenses remain unaccepted**; no customer-facing Site Kit has been released.
+**Disposition: Issue #3 remains OPEN**. A runnable pinned direct-dependency M0 fixture has a **4/4 two-host, two-engine** smoke PASS. **Production package, full contract, other browsers/IME/mobile and transitive licenses remain unaccepted**; no customer-facing Site Kit has been released.
 
 ## 7. Real GitHub-native execution evidence (M0 narrow PASS)
 - **[PR #14](https://github.com/kinoko34077/kinotch-site-kit/pull/14)** includes `spikes/m0` with an isolated Vite fixture: `index.html` vanilla ESM and `react.html` React 19, importing Web Awesome Core **3.14.0**, TanStack Hotkeys and React Hotkeys **0.13.0**. No consumers or published pages changed.
 - **[CI run #39091136344](https://github.com/kinoko34077/kinotch-site-kit/actions/runs/39091136344)** (Ubuntu standard public runner, Node 22): package install **PASS**, direct package identity/licenses checked (`@awesome.me/webawesome 3.14.0 MIT`, `@tanstack/hotkeys 0.13.0 MIT`, `@tanstack/react-hotkeys 0.13.0 MIT`), Playwright Chromium headless **2/2 PASS** (vanilla custom elements/theme/Toast/recorder/dispose; React host state/recorder/unmount), build **PASS** emitting **both** `dist/index.html` and `dist/react.html`.
 - Exact built fixture outputs: shared CSS `109.86 kB` raw / `15.72 kB` gzip; `vanilla` JS `26.92 kB` / `9.69 kB` gzip; shared JS chunk `200.26 kB` / `50.11 kB` gzip; React JS `215.97 kB` / `68.70 kB` gzip. **These are fixture bundles, not per-site or per-feature performance budgets**, and require import-graph decomposition before setting production targets.
-- **Warnings remain:** Vite default CSS target reported unsupported transformation for certain nesting selectors in vendor CSS under older Chrome/Edge/Firefox/Safari targets. Browser compatibility beyond the tested Chromium headless version is **UNVERIFIED**; do not call warnings harmless without reproducing legacy tests.
-- Runtime measurement scope: Chrome Headless Shell `153.0.8010.12`, Playwright `1.63.0`, Vite `6.2.3`. No screenshots, touch hardware, keyboard conflict/IME, large pages, WebKit/Firefox, network silence, Core-vs-Pro asset audit beyond direct package identity, full SBOM or stable transitive lockfile were proven.
-- Decision: **continue** into extended M0 gates; do **not** claim M0 fully accepted, M1 started, public npm release, or consumer adoption solely from two basic smoke tests.
+- **Warnings remain:** Vite default CSS target reported unsupported transformation for certain nesting selectors in vendor CSS under older Chrome/Edge/Firefox/Safari targets. Older Safari/Chromium and Firefox compatibility outside the tested Chromium+desktop WebKit versions remains **UNVERIFIED**; do not call warnings harmless without reproducing legacy tests.
+- Runtime measurement scope: Chrome Headless Shell `153.0.8010.12`, Playwright `1.63.0`, Vite `6.2.3`. No screenshots, touch hardware, keyboard conflict/IME, large pages, Firefox, older-version Safari, network silence, Core-vs-Pro asset audit beyond direct package identity, full SBOM or stable transitive lockfile were proven.
+- Decision: **continue** into extended M0 gates, including real-device checks and frozen dependency provenance; do **not** claim M0 fully accepted, M1 started, public npm release, or consumer adoption solely from two basic smoke tests.
+
+## 8. Cross-engine navigation and build repeat — final bounded checkpoint
+- Final [PR #14](https://github.com/kinoko34077/kinotch-site-kit/pull/14) merged after exact-head successful **[GitHub Actions #39091308467](https://github.com/kinoko34077/kinotch-site-kit/actions/runs/39091308467)**. Job `browser-smoke` **SUCCESS**. CI logs explicitly show **4/4 PASS** across **Chromium and desktop WebKit**, each running **Vanilla ESM and React 19** scenarios. This supersedes the earlier 2/2 Chromium-only result in §7.
+- Added narrow mobile-layout checks of `wa-page` view mode and menu `nav-open` open/close via button/Escape in vanilla; React tests also verify mobile view with host-owned state preserved. Both built `dist/index.html` and `dist/react.html` successfully. Important: desktop WebKit at a simulated 390px viewport **is not real iPhone Safari**, and the tests do not cover touch hardware or mobile browser chrome.
+- Candidate package versions and direct MIT metadata unchanged. Current Vite CSS nesting transformation warnings under old compilation targets persist; an additional compatibility gate is required. Realistic styling collision, access-control isolation, accessibility audit, keyboard/IME conflict matrix, no telemetry/no third-party network, frozen transitive lockfile/SBOM and full SiteDefinition contract **remain UNVERIFIED**.
+- Current decision: **M0 partial PASS**, not M0 admission. Next work is targeted keyboard/IME/focus tests, asset/license freezing and baseline mobile/consumer browser observations; only after M0 gate accept should shared Core API work proceed.
