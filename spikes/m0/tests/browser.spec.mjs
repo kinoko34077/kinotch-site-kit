@@ -213,13 +213,14 @@ test('desktop menu opens with button and closes with Escape or outside click', a
 test('theme icon and accessible label change in place and restore preference', async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('#theme-icon')).toHaveText('🖥️');
-  await expect(page.locator('#theme-label')).toHaveText('システム');
+  await expect(page.locator('#theme-label')).toHaveCount(0);
+  await expect(page.locator('#theme')).toHaveAttribute('aria-label', /システム/);
   await page.locator('#theme').click();
   await expect(page.locator('#theme-icon')).toHaveText('☀️');
-  await expect(page.locator('#theme-label')).toHaveText('ライト');
+  await expect(page.locator('#theme-label')).toHaveCount(0);
   await page.locator('#theme').click();
   await expect(page.locator('#theme-icon')).toHaveText('🌙');
-  await expect(page.locator('#theme-label')).toHaveText('ダーク');
+  await expect(page.locator('#theme-label')).toHaveCount(0);
   await expect(page.locator('#theme')).toHaveAttribute('aria-label', /ダーク/);
   await page.reload();
   await expect(page.locator('#theme-icon')).toHaveText('🌙');
@@ -245,6 +246,7 @@ test('React desktop menu and icon cycle remain functional after state updates', 
   await expect(page.locator('#react-desktop-menu')).toBeHidden();
   await expect(page.locator('#react-desktop-menu-toggle')).toBeFocused();
   await expect(page.locator('#react-theme-icon')).toHaveText('🖥️');
+  await expect(page.locator('#react-theme-label')).toHaveCount(0);
   await page.locator('#react-theme').click();
   await expect(page.locator('#react-theme-icon')).toHaveText('☀️');
   await page.locator('#react-text').fill('React に残る');
