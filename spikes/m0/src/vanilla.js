@@ -11,7 +11,6 @@ import { HotkeyRecorder } from '@tanstack/hotkeys';
 const shell = document.getElementById('site-shell');
 const themeButton = document.getElementById('theme');
 const themeIcon = document.getElementById('theme-icon');
-const themeLabel = document.getElementById('theme-label');
 const desktopButton = document.getElementById('desktop-menu-toggle');
 const desktopMenu = document.getElementById('desktop-menu');
 const menuStatus = document.getElementById('menu-status');
@@ -37,7 +36,6 @@ function applyTheme() {
     : state.theme;
   themeButton.dataset.mode = state.theme;
   themeIcon.textContent = icons[state.theme];
-  themeLabel.textContent = labels[state.theme];
   themeButton.setAttribute('aria-label', '現在 ' + labels[state.theme] + '。押すと表示モードを切替');
   themeButton.setAttribute('title', '現在: ' + labels[state.theme]);
   themeStatus.textContent = labels[state.theme];
