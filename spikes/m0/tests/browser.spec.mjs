@@ -110,6 +110,15 @@ test('narrow and desktop viewport remain usable without horizontal overflow', as
         visit(document);
         return offenders.sort((a,b) => b.right - a.right).slice(0, 18);
       });
+      const containers = await page.evaluate(() => ['html','body','wa-page','#main','.demo-grid','.demo-card','.demo-card .controls','#notify','#record'].map(selector => {
+        const el = document.querySelector(selector);
+        if (!el) return { selector, missing: true };
+        const b = el.getBoundingClientRect();
+        const c = getComputedStyle(el);
+        return { selector, x: Math.round(b.left), width: Math.round(b.width), right: Math.round(b.right),
+          cssMin: c.minWidth, cssMax: c.maxWidth, grid: c.gridTemplateColumns, overflow: c.overflowX };
+      }));
+      console.log('M0_OVERFLOW_CONTAINER', width, JSON.stringify(containers));
       console.log('M0_OVERFLOW_DIAGNOSTIC', width, JSON.stringify(elements));
     }
     expect(dimensions.documentWidth, 'document overflow at ' + width).toBeLessThanOrEqual(width + 2);
