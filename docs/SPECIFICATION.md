@@ -22,7 +22,7 @@ Support tiers must be declared/tested explicitly: vanilla browser ESM P0; React/
 ## S2. Module architecture and packages (provisional names, stable responsibilities)
 - core: typed SiteDefinition, schema validation, capability registry, lifecycle, configuration layering, route metadata, shared action/state contract and diagnostics.
 - shell: optional semantic regions (banner/header/subheader/nav/main/aside/footer), responsive nav, mobile disclosure, sidebars, navigation hierarchy, breadcrumbs, page title and metadata.
-- components: Web Awesome Core-backed controls, menu/dialog/toast/tabs/form/tooltip; facade preserving replaceability, no leaking vendor DOM IDs to app API.
+- components: Web Awesome **Core**-backed buttons, menu/dialog/drawer/breadcrumb/tabs/form/callout/tooltip; **Toast/Toast Item are documented Pro components, so a nonblocking toast-like notice requires an independently permitted OSS or a narrowly scoped native implementation rather than bundling Pro assets**. Maintain a replaceable facade without leaking vendor DOM IDs to app API.
 - theme: CSS custom-property design tokens, system/light/dark, scoped theme overrides, high contrast/reduced motion where supported, preference persistence.
 - shortcuts: action registry, scope/priority, input safety, record/edit/reset/conflict detection, OS-specific shortcut display, menu-local shortcut discovery and keyboard-independent route.
 - pages: optional Home/About/Help/Contact/404/Privacy/Terms/Cookies structure and links; legal text provided or reviewed by each site, never inferred as legal compliance.
