@@ -88,6 +88,30 @@ test('narrow and desktop viewport remain usable without horizontal overflow', as
       documentWidth: document.documentElement.scrollWidth,
       bodyWidth: document.body.scrollWidth
     }));
+    if (dimensions.documentWidth > width + 2) {
+      const elements = await page.evaluate(() => {
+        const offenders = [];
+        function visit(root) {
+          for (const el of root.querySelectorAll('*')) {
+            const b = el.getBoundingClientRect();
+            if (b.width > 0 && b.right > innerWidth + 1) {
+              const style = getComputedStyle(el);
+              offenders.push({
+                tag: el.tagName.toLowerCase(),
+                id: el.id || '',
+                className: typeof el.className === 'string' ? el.className.slice(0, 80) : '',
+                left: Math.round(b.left), right: Math.round(b.right), width: Math.round(b.width),
+                minWidth: style.minWidth, whiteSpace: style.whiteSpace, display: style.display
+              });
+            }
+            if (el.shadowRoot) visit(el.shadowRoot);
+          }
+        }
+        visit(document);
+        return offenders.sort((a,b) => b.right - a.right).slice(0, 18);
+      });
+      console.log('M0_OVERFLOW_DIAGNOSTIC', width, JSON.stringify(elements));
+    }
     expect(dimensions.documentWidth, 'document overflow at ' + width).toBeLessThanOrEqual(width + 2);
     expect(dimensions.bodyWidth, 'body overflow at ' + width).toBeLessThanOrEqual(width + 2);
     await expect(page.locator('#notify')).toBeVisible();
