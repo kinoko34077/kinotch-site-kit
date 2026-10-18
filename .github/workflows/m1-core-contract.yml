@@ -28,3 +28,7 @@ jobs:
         run: node --check packages/core/index.mjs
       - name: Run core contract and lifecycle tests
         run: node --test packages/core/tests/*.test.mjs
+      - name: Install pinned TypeScript for declaration verification
+        run: npm install --prefix packages/core --no-audit --no-fund --no-package-lock
+      - name: Typecheck exported NodeNext contract and invalid overrides
+        run: npm run --prefix packages/core test:types
