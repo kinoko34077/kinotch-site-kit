@@ -1,0 +1,99 @@
+name: Site Kit M0 demo — GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "spikes/m0/**"
+      - ".github/workflows/m0-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-kit-m0-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: spikes/m0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned direct dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify OSS identity
+        run: |
+          npm ls --depth=0
+          node -e "for(const x of ['@awesome.me/webawesome','@tanstack/hotkeys','@tanstack/react-hotkeys']) {const p=require('./node_modules/'+x+'/package.json');console.log(p.name,p.version,p.license);}"
+      - name: Install browser engines
+        run: npx playwright install chromium webkit --with-deps
+      - name: Verify controls, keyboard, and both hosts
+        run: npm run test:e2e
+      - name: Build portable static preview
+        run: |
+          npm run build
+          test -s dist/index.html
+          test -s dist/react.html
+          test -n "$(find dist/assets -maxdepth 1 -name '*.js' -print -quit)"
+          if grep -Eq '(src|href)="/assets/' dist/*.html; then
+            echo "::error::Root-absolute asset path is incompatible with project Pages"
+            exit 1
+          fi
+          touch dist/.nojekyll
+      - name: Configure existing GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload verified static artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: spikes/m0/dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish GitHub Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify-public:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: spikes/m0
+    env:
+      SITE_URL: ${{ needs.deploy.outputs.page_url }}
+      M0_BASE_URL: ${{ needs.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify live root, React and local JS/CSS assets
+        run: node scripts/check-published.mjs
+      - name: Install test dependencies and browsers
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install chromium webkit --with-deps
+      - name: Verify real live interactions in Chromium and desktop WebKit
+        run: npm run test:e2e
