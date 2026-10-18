@@ -7,6 +7,9 @@ import '@awesome.me/webawesome/dist/components/breadcrumb/breadcrumb.js';
 import '@awesome.me/webawesome/dist/components/breadcrumb-item/breadcrumb-item.js';
 import '@awesome.me/webawesome/dist/components/toast/toast.js';
 import { HotkeyRecorder } from '@tanstack/hotkeys';
+import { createSiteController } from '../../../packages/core/index.mjs';
+import { createVanillaNavigationAdapter } from '../../../packages/adapters/vanilla.mjs';
+import { siteInputForPath } from './site-contract.js';
 
 const shell = document.getElementById('site-shell');
 const themeButton = document.getElementById('theme');
@@ -96,10 +99,14 @@ document.addEventListener('pointerdown', onOutsideClick);
 document.addEventListener('keydown', onDesktopKey);
 applyTheme();
 onViewChanged();
+// This separate, vendor-free controller owns only its dedicated demo navigation host.
+const coreController = createSiteController(siteInputForPath(location.pathname));
+coreController.mount(document.getElementById('core-nav'), createVanillaNavigationAdapter({ currentRouteId: 'home' }));
 function dispose() {
   if (state.disposed) return;
   state.disposed = true;
   recorder.destroy();
+  coreController.dispose();
   themeButton.removeEventListener('click', onTheme);
   noticeButton.removeEventListener('click', onNotify);
   recordButton.removeEventListener('click', onRecord);
@@ -110,5 +117,5 @@ function dispose() {
   viewObserver.disconnect();
   systemTheme.removeEventListener?.('change', onSystemThemeChange);
 }
-window.__m0 = { state, shell, dispose };
+window.__m0 = { state, shell, coreController, dispose };
 window.addEventListener('pagehide', dispose, { once: true });
