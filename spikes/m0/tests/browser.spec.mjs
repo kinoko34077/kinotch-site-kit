@@ -14,8 +14,10 @@ test('vanilla: Core Web Components are registered, theme and hotkey recorder wor
   await expect(page.locator('wa-breadcrumb-item')).toHaveCount(2);
   await page.locator('#theme').click();
   await expect(page.locator('#theme')).toHaveAttribute('data-mode', 'light');
+  await expect(page.locator('#theme-icon')).toHaveText('☀️');
   await page.locator('#theme').click();
   await expect(page.locator('#theme')).toHaveAttribute('data-mode', 'dark');
+  await expect(page.locator('#theme-icon')).toHaveText('🌙');
   await page.locator('#notify').click();
   await expect(page.locator('wa-toast-item')).toHaveCount(1);
   await page.locator('#record').click();
@@ -46,10 +48,10 @@ test('React: custom elements coexist with host-owned state and recorder', async 
 test('preview navigation works and React page has a return path', async ({ page }) => {
   await page.goto('./');
   await expect(page).toHaveTitle(/Vanilla JS/);
-  await page.locator('section.hero a[href="./react.html"]').click();
+  await page.locator('#detail a[href="./react.html"]').click();
   await expect(page).toHaveTitle(/React/);
   await expect(page.locator('#react-count')).toHaveText('0');
-  await page.locator('a[href="./"]').first().click();
+  await page.locator('section.hero a[href="./"]').click();
   await expect(page).toHaveTitle(/Vanilla JS/);
 });
 
@@ -186,4 +188,68 @@ test('simulated touch can open mobile menu and switch theme', async ({ browser }
   } finally {
     await context.close();
   }
+});
+
+test('desktop menu opens with button and closes with Escape or outside click', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('./');
+  await expect(page.locator('#site-shell')).toHaveAttribute('view', 'desktop');
+  await expect(page.locator('#desktop-menu-toggle')).toBeVisible();
+  await expect(page.locator('#toggle-nav')).toBeHidden();
+  await expect(page.locator('#desktop-menu')).toBeHidden();
+  await page.locator('#desktop-menu-toggle').click();
+  await expect(page.locator('#desktop-menu')).toBeVisible();
+  await expect(page.locator('#desktop-menu-toggle')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#desktop-menu a[href="#feature-status"]')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#desktop-menu')).toBeHidden();
+  await expect(page.locator('#desktop-menu-toggle')).toBeFocused();
+  await page.locator('#desktop-menu-toggle').click();
+  await page.locator('#page-title').click();
+  await expect(page.locator('#desktop-menu')).toBeHidden();
+  await expect(page.locator('#desktop-menu-toggle')).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('theme icon and accessible label change in place and restore preference', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('#theme-icon')).toHaveText('🖥️');
+  await expect(page.locator('#theme-label')).toHaveText('システム');
+  await page.locator('#theme').click();
+  await expect(page.locator('#theme-icon')).toHaveText('☀️');
+  await expect(page.locator('#theme-label')).toHaveText('ライト');
+  await page.locator('#theme').click();
+  await expect(page.locator('#theme-icon')).toHaveText('🌙');
+  await expect(page.locator('#theme-label')).toHaveText('ダーク');
+  await expect(page.locator('#theme')).toHaveAttribute('aria-label', /ダーク/);
+  await page.reload();
+  await expect(page.locator('#theme-icon')).toHaveText('🌙');
+  await page.locator('#theme').click();
+  await expect(page.locator('#theme-icon')).toHaveText('🖥️');
+});
+
+test('preview presents tested features separately from planned product features', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('#feature-status')).toContainText('試せる');
+  await expect(page.locator('#feature-status')).toContainText('未実装');
+  await expect(page.locator('#feature-status a[href*="/issues/10"]')).toBeVisible();
+  await expect(page.locator('#menu-status')).toBeVisible();
+});
+
+test('React desktop menu and icon cycle remain functional after state updates', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('./react.html');
+  await expect(page.locator('#react-shell')).toHaveAttribute('view', 'desktop');
+  await page.locator('#react-desktop-menu-toggle').click();
+  await expect(page.locator('#react-desktop-menu')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#react-desktop-menu')).toBeHidden();
+  await expect(page.locator('#react-desktop-menu-toggle')).toBeFocused();
+  await expect(page.locator('#react-theme-icon')).toHaveText('🖥️');
+  await page.locator('#react-theme').click();
+  await expect(page.locator('#react-theme-icon')).toHaveText('☀️');
+  await page.locator('#react-text').fill('React に残る');
+  await page.locator('#react-action').click();
+  await expect(page.locator('#react-text')).toHaveValue('React に残る');
+  await page.reload();
+  await expect(page.locator('#react-theme-icon')).toHaveText('☀️');
 });

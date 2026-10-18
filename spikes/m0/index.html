@@ -12,14 +12,23 @@
   <header slot="header" class="demo-header">
     <span class="brand">KiNoTch. / Site Kit <span class="tag">M0 検証版</span></span>
     <div class="header-actions">
-      <wa-button id="toggle-nav" data-toggle-nav size="small" aria-label="ナビゲーションを開閉">☰ メニュー</wa-button>
-      <wa-button id="theme" size="small" aria-label="画面のテーマを変更">テーマ</wa-button>
+      <wa-button id="toggle-nav" data-toggle-nav size="small" aria-label="スマホメニューを開閉">☰ メニュー</wa-button>
+      <button id="desktop-menu-toggle" class="menu-trigger desktop-only" type="button" aria-controls="desktop-menu" aria-expanded="false">☰ メニュー</button>
+      <wa-button id="theme" size="small" aria-label="テーマを切り替える"><span id="theme-icon" aria-hidden="true">🖥️</span> <span id="theme-label">システム</span></wa-button>
     </div>
+    <nav id="desktop-menu" class="desktop-menu" aria-label="PC用メニュー" hidden>
+      <a href="./" aria-current="page">Vanilla JS 版</a>
+      <a href="./react.html">React 版</a>
+      <a href="#detail">機能を試す</a>
+      <a href="#feature-status">実装状況</a>
+      <a href="https://github.com/kinoko34077/kinotch-site-kit/issues/20">改善Issue ↗</a>
+    </nav>
   </header>
   <nav slot="navigation" class="demo-nav" aria-label="検証ページ一覧">
     <a href="./" aria-current="page">Vanilla JS 版</a>
     <a href="./react.html">React 版</a>
-    <a href="#detail">試せる機能</a>
+    <a href="#detail">機能を試す</a>
+    <a href="#feature-status">実装状況</a>
     <a href="https://github.com/kinoko34077/kinotch-site-kit/issues/16">検証Issue #16 ↗</a>
   </nav>
   <main id="main" class="demo-main">
@@ -28,49 +37,62 @@
       <wa-breadcrumb-item>Vanilla JS</wa-breadcrumb-item>
     </wa-breadcrumb>
     <section class="hero" id="home" aria-labelledby="page-title">
-      <p class="eyebrow">SHARED WEBSITE FEATURES • TECHNICAL PREVIEW</p>
-      <h1 id="page-title">サイト共通機能を、実際に操作して確認する。</h1>
-      <p>ヘッダー、モバイルメニュー、パンくず、テーマ、通知、ショートカット記録を組み合わせた実験ページです。</p>
-      <p><span class="tag">Web Awesome Core 3.14.0</span> <span class="tag">TanStack Hotkeys 0.13.0</span></p>
-      <p><a href="./react.html">同じ部品をReactで使う例を見る →</a></p>
+      <p class="eyebrow">操作できるサイトの共通部品 • M0 試作</p>
+      <h1 id="page-title">押して、変化を確かめる。</h1>
+      <p>① 上の <strong>☰ メニュー</strong> を開く。② <strong>🖥️ システム</strong> を押して表示を切り替える。③ 下の機能を試す。それだけで確認できます。</p>
+      <p><a href="#detail">機能を試す ↓</a>　<a href="#feature-status">どこまでできている？ ↓</a></p>
     </section>
     <section id="detail" aria-label="試せる機能" class="demo-grid">
       <article class="demo-card">
-        <h2>01 — メニューと画面幅</h2>
-        <p>上部の「メニュー」を押して開閉。幅が狭い画面ではドロワーに切り替わります。Escapeでも閉じられます。</p>
-        <p class="demo-note">画面を横向きにした場合も、メニューと本文が利用できるか確認してください。</p>
+        <h2>☰ メニュー</h2>
+        <p>画面上部の「☰ メニュー」を押します。PCではメニュー一覧、スマホでは横から出るメニューになります。</p>
+        <output id="menu-status" class="demo-output" aria-live="polite">メニューを開くと結果が表示されます</output>
       </article>
       <article class="demo-card">
-        <h2>02 — ライト・ダーク表示</h2>
-        <p>上部の「テーマ」を押すと「システム → ライト → ダーク」を切り替えます。</p>
+        <h2>☀️ 🌙 🖥️ 表示モード</h2>
+        <p>上のアイコンを押すたびに 🖥️ → ☀️ → 🌙 と変わります。ここにも結果が反映されます。</p>
         <output id="theme-status" class="demo-output" aria-live="polite">システム</output>
       </article>
       <article class="demo-card">
-        <h2>03 — 通知</h2>
-        <p>画面を大きく押し下げない通知を表示します。</p>
+        <h2>通知を試す</h2>
+        <p>ボタンを押すと通知が現れ、回数が増えます。</p>
         <div class="controls"><wa-button id="notify" variant="brand">通知を表示</wa-button></div>
         <output id="notice-count" class="demo-output" aria-live="polite">まだ通知していません</output>
         <wa-toast id="notices"></wa-toast>
       </article>
       <article class="demo-card">
-        <h2>04 — キー入力を記録</h2>
-        <p>「記録開始」後にキーの組合せを入力します。アプリの標準操作を上書きする機能ではありません。</p>
+        <h2>ショートカットの記録</h2>
+        <p>「記録開始」→ キーを押す。現段階ではキーを記録するだけで、自由な割当変更は未実装です。</p>
         <div class="controls"><wa-button id="record" variant="brand">記録開始</wa-button></div>
         <output id="recorded" class="demo-output" aria-live="polite">未割当</output>
       </article>
       <article class="demo-card">
-        <h2>05 — 入力内容の保持</h2>
+        <h2>入力した文字の保持</h2>
         <p>文字を入力してからメニューやテーマを操作し、入力中の内容が勝手に消えないか確認します。</p>
         <label for="editor">動作確認用入力</label>
         <input id="editor" aria-label="入力中のホットキー隔離検証" value="preserved" autocomplete="off">
       </article>
       <article class="demo-card">
-        <h2>06 — 異なる技術でも再利用</h2>
-        <p>React版では、React固有の状態管理とWeb Componentsを同時に操作できます。</p>
+        <h2>React版でも試す</h2>
+        <p>同じ画面の部品を、別の仕組みでも組み合わせられるか確認できます。</p>
         <p><a href="./react.html">React 検証ページへ →</a></p>
       </article>
     </section>
-    <p class="demo-note">このページはM0技術検証用の試作品です。正式な共通ライブラリ、各既存サイトへの導入、法務ページの完成を意味しません。入力欄の内容は送信しません。</p>
+    <section id="feature-status" class="feature-status" aria-labelledby="feature-status-title">
+      <h2 id="feature-status-title">このサイトで試せること・今後作ること</h2>
+      <div class="status-columns">
+        <div>
+          <h3>今、試せる <span class="tag">動作サンプル</span></h3>
+          <p>ヘッダー・フッター、PC/スマホのメニュー、パンくず表示、テーマ切替、通知、キー記録、入力保持。</p>
+        </div>
+        <div>
+          <h3>これから作る <span class="tag pending">未実装</span></h3>
+          <p>複数サイトで使える共通API、メニュー・配色のサイト別設定、ショートカット割当変更・競合解決、ヘルプ・法務ページのテンプレート、検索・多言語・SEO等。</p>
+          <p><a href="https://github.com/kinoko34077/kinotch-site-kit/issues/10">ロードマップを見る ↗</a></p>
+        </div>
+      </div>
+    </section>
+    <p class="demo-note">これはM0の動作見本であり、完成済みの共通ライブラリではありません。入力欄の内容はサーバーへ送信しません。</p>
   </main>
   <footer slot="footer" class="demo-footer">
     KiNoTch. Site Kit / M0 Preview

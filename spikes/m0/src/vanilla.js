@@ -10,6 +10,11 @@ import { HotkeyRecorder } from '@tanstack/hotkeys';
 
 const shell = document.getElementById('site-shell');
 const themeButton = document.getElementById('theme');
+const themeIcon = document.getElementById('theme-icon');
+const themeLabel = document.getElementById('theme-label');
+const desktopButton = document.getElementById('desktop-menu-toggle');
+const desktopMenu = document.getElementById('desktop-menu');
+const menuStatus = document.getElementById('menu-status');
 const recordButton = document.getElementById('record');
 const result = document.getElementById('recorded');
 const notification = document.getElementById('notices');
@@ -18,7 +23,8 @@ const themeStatus = document.getElementById('theme-status');
 const noticeStatus = document.getElementById('notice-count');
 const storageKey = 'kinotch-site-kit-m0-demo-theme';
 const modes = ['system', 'light', 'dark'];
-const labels = { system: 'システム設定', light: 'ライト', dark: 'ダーク' };
+const labels = { system: 'システム', light: 'ライト', dark: 'ダーク' };
+const icons = { system: '🖥️', light: '☀️', dark: '🌙' };
 let restored = 'system';
 try {
   const saved = localStorage.getItem(storageKey);
@@ -30,7 +36,10 @@ function applyTheme() {
     ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
     : state.theme;
   themeButton.dataset.mode = state.theme;
-  themeButton.setAttribute('aria-label', 'テーマを変更。現在: ' + labels[state.theme]);
+  themeIcon.textContent = icons[state.theme];
+  themeLabel.textContent = labels[state.theme];
+  themeButton.setAttribute('aria-label', '現在 ' + labels[state.theme] + '。押すと表示モードを切替');
+  themeButton.setAttribute('title', '現在: ' + labels[state.theme]);
   themeStatus.textContent = labels[state.theme];
 }
 const onSystemThemeChange = () => { if (state.theme === 'system') applyTheme(); };
@@ -51,10 +60,44 @@ const recorder = new HotkeyRecorder({
   onCancel: () => { result.textContent = '記録をキャンセルしました'; }
 });
 function onRecord() { result.textContent = '記録中… キーを入力してください'; recorder.start(); }
+function setDesktopMenu(open, restoreFocus = false) {
+  desktopMenu.hidden = !open;
+  desktopButton.setAttribute('aria-expanded', String(open));
+  menuStatus.textContent = open ? 'PCのメニューを表示中。項目を選ぶか、Escapeで閉じます' : 'PCのメニューを閉じました';
+  if (!open && restoreFocus) desktopButton.focus();
+}
+function onDesktopClick() { setDesktopMenu(desktopMenu.hidden); }
+function onOutsideClick(event) {
+  if (!desktopMenu.hidden && !desktopMenu.contains(event.target) && !desktopButton.contains(event.target)) setDesktopMenu(false);
+}
+function onDesktopKey(event) {
+  if (event.key === 'Escape' && !desktopMenu.hidden) {
+    event.preventDefault();
+    setDesktopMenu(false, true);
+  }
+}
+function onDesktopLink(event) {
+  if (event.target.closest('a')) setDesktopMenu(false);
+}
+function onViewChanged() {
+  if (shell.getAttribute('view') === 'mobile') {
+    setDesktopMenu(false);
+    menuStatus.textContent = 'スマホ：上の☰で横からメニューが開きます';
+  } else if (desktopMenu.hidden) {
+    menuStatus.textContent = 'PC：上の☰でメニュー一覧が開きます';
+  }
+}
+const viewObserver = new MutationObserver(onViewChanged);
+viewObserver.observe(shell, { attributes: true, attributeFilter: ['view'] });
 themeButton.addEventListener('click', onTheme);
 noticeButton.addEventListener('click', onNotify);
 recordButton.addEventListener('click', onRecord);
+desktopButton.addEventListener('click', onDesktopClick);
+desktopMenu.addEventListener('click', onDesktopLink);
+document.addEventListener('pointerdown', onOutsideClick);
+document.addEventListener('keydown', onDesktopKey);
 applyTheme();
+onViewChanged();
 function dispose() {
   if (state.disposed) return;
   state.disposed = true;
@@ -62,6 +105,11 @@ function dispose() {
   themeButton.removeEventListener('click', onTheme);
   noticeButton.removeEventListener('click', onNotify);
   recordButton.removeEventListener('click', onRecord);
+  desktopButton.removeEventListener('click', onDesktopClick);
+  desktopMenu.removeEventListener('click', onDesktopLink);
+  document.removeEventListener('pointerdown', onOutsideClick);
+  document.removeEventListener('keydown', onDesktopKey);
+  viewObserver.disconnect();
   systemTheme.removeEventListener?.('change', onSystemThemeChange);
 }
 window.__m0 = { state, shell, dispose };
