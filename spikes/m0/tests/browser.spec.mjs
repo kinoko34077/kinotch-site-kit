@@ -5,6 +5,11 @@ test('vanilla: Core Web Components are registered, theme and hotkey recorder wor
   await page.goto('/');
   await page.evaluate(async () => Promise.all(['wa-page','wa-breadcrumb','wa-breadcrumb-item','wa-toast'].map(tag => customElements.whenDefined(tag))));
   await expect(page.locator('wa-page')).toBeVisible();
+  await expect(page.locator('#site-shell')).toHaveAttribute('view', 'mobile');
+  await page.locator('#toggle-nav').click();
+  await expect(page.locator('#site-shell')).toHaveAttribute('nav-open', '');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#site-shell')).not.toHaveAttribute('nav-open', '');
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.locator('wa-breadcrumb-item')).toHaveCount(2);
   await page.locator('#theme').click();
@@ -25,6 +30,7 @@ test('React: custom elements coexist with host-owned state and recorder', async 
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('/react.html');
   await page.evaluate(async () => customElements.whenDefined('wa-page'));
+  await expect(page.locator('#react-shell')).toHaveAttribute('view', 'mobile');
   await expect(page.locator('#react-count')).toHaveText('0');
   await page.locator('#react-action').click();
   await expect(page.locator('#react-count')).toHaveText('1');
