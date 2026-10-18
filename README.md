@@ -2,6 +2,14 @@
 
 Reusable and configurable Website/Application Shell + standard feature kit for KiNoTch.'s heterogeneous public websites. **Initial spec/bootstrap only**; no library implementation, consumer migration, release or deployment has been accepted yet.
 
+## Public M0 verification pages
+
+- [Vanilla JavaScript preview](https://kinoko34077.github.io/kinotch-site-kit/) — responsive navigation, theme, notifications, hotkey recording and input preservation.
+- [React preview](https://kinoko34077.github.io/kinotch-site-kit/react.html) — React-owned state alongside Web Components.
+- [Pages publishing and verification Issue #16](https://github.com/kinoko34077/kinotch-site-kit/issues/16)
+
+Both pages are **M0 experimental verification fixtures**, not a released reusable library or migration of existing websites. Actual publication is controlled by `.github/workflows/m0-pages.yml` and post-deployment public URL tests; do not mistake repository visibility or successful toy tests for general product acceptance.
+
 ## Design priorities
 End-user and developer usability > flexibility/extensibility/portability > coverage of standard expectations > reuse of maintained OSS > safety/performance and maintainability > convenience of legacy integration.
 
