@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('vanilla: Core Web Components are registered, theme and hotkey recorder work', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('./');
   await page.evaluate(async () => Promise.all(['wa-page','wa-breadcrumb','wa-breadcrumb-item','wa-toast'].map(tag => customElements.whenDefined(tag))));
   await expect(page.locator('wa-page')).toBeVisible();
   await expect(page.locator('#site-shell')).toHaveAttribute('view', 'mobile');
@@ -28,7 +28,7 @@ test('vanilla: Core Web Components are registered, theme and hotkey recorder wor
 
 test('React: custom elements coexist with host-owned state and recorder', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/react.html');
+  await page.goto('./react.html');
   await page.evaluate(async () => customElements.whenDefined('wa-page'));
   await expect(page.locator('#react-shell')).toHaveAttribute('view', 'mobile');
   await expect(page.locator('#react-count')).toHaveText('0');
