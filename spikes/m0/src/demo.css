@@ -63,6 +63,8 @@ wa-breadcrumb { margin-top: .2rem; }
 .demo-header { position: relative; }
 .menu-trigger { font: inherit; font-weight: 650; color: var(--demo-text); background: var(--demo-panel); border: 1px solid var(--demo-border); padding: .43rem .75rem; border-radius: 9px; cursor: pointer; min-height: 40px; }
 .menu-trigger:hover, .menu-trigger[aria-expanded="true"] { background: var(--demo-accent-soft); }
+#theme::part(base), .icon-only-theme { width: 44px; min-width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+#theme #theme-icon, #react-theme-icon { font-size: 1.35rem; line-height: 1; }
 .desktop-menu[hidden] { display: none !important; }
 .desktop-menu { position: absolute; right: .8rem; top: calc(100% - .15rem); min-width: min(270px, calc(100vw - 1.6rem)); z-index: 50; box-shadow: 0 13px 36px #0002; background: var(--demo-panel); border: 1px solid var(--demo-border); border-radius: 12px; padding: .45rem; display: flex; flex-direction: column; gap: .1rem; }
 .desktop-menu a { display: block; color: var(--demo-text); text-decoration: none; border-radius: 8px; padding: .55rem .8rem; }
