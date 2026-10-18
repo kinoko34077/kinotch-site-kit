@@ -83,6 +83,14 @@ test('narrow and desktop viewport remain usable without horizontal overflow', as
     await page.setViewportSize({ width, height: 760 });
     await page.goto('./');
     await page.evaluate(async () => customElements.whenDefined('wa-page'));
+    // Web Awesome updates its responsive "view" after a ResizeObserver cycle.
+    // Measuring immediately after customElements.whenDefined can catch the pre-layout
+    // desktop grid in WebKit (main starts at x=195px in a 320px viewport).
+    // Gate the steady-state result without hiding the initial-layout observation.
+    const initialView = await page.locator('#site-shell').getAttribute('view');
+    await expect(page.locator('#site-shell')).toHaveAttribute('view', width < 760 ? 'mobile' : 'desktop');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    if (width === 320) console.log('M0_RESPONSIVE_VIEW', width, 'initial=', initialView, 'settled=', await page.locator('#site-shell').getAttribute('view'));
     const dimensions = await page.evaluate(() => ({
       width: innerWidth,
       documentWidth: document.documentElement.scrollWidth,
