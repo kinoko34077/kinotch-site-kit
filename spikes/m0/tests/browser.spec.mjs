@@ -77,3 +77,72 @@ test('keyboard Escape closes menu without hijacking editable input', async ({ pa
   await page.keyboard.press('Escape');
   await expect(page.locator('#site-shell')).not.toHaveAttribute('nav-open', '');
 });
+
+test('narrow and desktop viewport remain usable without horizontal overflow', async ({ page }) => {
+  for (const width of [320, 390, 768, 1024]) {
+    await page.setViewportSize({ width, height: 760 });
+    await page.goto('./');
+    await page.evaluate(async () => customElements.whenDefined('wa-page'));
+    const dimensions = await page.evaluate(() => ({
+      width: innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      bodyWidth: document.body.scrollWidth
+    }));
+    expect(dimensions.documentWidth, 'document overflow at ' + width).toBeLessThanOrEqual(width + 2);
+    expect(dimensions.bodyWidth, 'body overflow at ' + width).toBeLessThanOrEqual(width + 2);
+    await expect(page.locator('#notify')).toBeVisible();
+    await expect(page.locator('#theme')).toBeVisible();
+  }
+});
+
+test('preview loads without unexpected third-party assets or telemetry calls', async ({ page }) => {
+  const unexpected = [];
+  const ignored = new Set(['document']);
+  page.on('request', request => {
+    if (ignored.has(request.resourceType())) return;
+    const requestOrigin = new URL(request.url()).origin;
+    const pageOrigin = new URL(page.url()).origin;
+    if (requestOrigin !== pageOrigin) unexpected.push({ type: request.resourceType(), url: request.url() });
+  });
+  await page.goto('./');
+  await page.evaluate(async () => customElements.whenDefined('wa-toast'));
+  await page.locator('#notify').click();
+  await page.locator('#theme').click();
+  expect(unexpected).toEqual([]);
+});
+
+test('React reset keeps typed text and semantic landmarks', async ({ page }) => {
+  await page.goto('./react.html');
+  await page.locator('#react-text').fill('保持したい文字');
+  await page.locator('#react-action').click();
+  await page.locator('#react-action').click();
+  await expect(page.locator('#react-count')).toHaveText('2');
+  await page.locator('#react-reset').click();
+  await expect(page.locator('#react-count')).toHaveText('0');
+  await expect(page.locator('#react-text')).toHaveValue('保持したい文字');
+  await expect(page.locator('header[slot="header"]')).toHaveCount(1);
+  await expect(page.locator('nav[slot="navigation"]')).toHaveCount(1);
+  await expect(page.locator('main')).toHaveCount(1);
+  await expect(page.locator('footer[slot="footer"]')).toHaveCount(1);
+});
+
+test('simulated touch can open mobile menu and switch theme', async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto('./');
+    await page.evaluate(async () => customElements.whenDefined('wa-page'));
+    await page.locator('#toggle-nav').tap();
+    await expect(page.locator('#site-shell')).toHaveAttribute('nav-open', '');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#site-shell')).not.toHaveAttribute('nav-open', '');
+    await page.locator('#theme').tap();
+    await expect(page.locator('#theme')).toHaveAttribute('data-mode', 'light');
+  } finally {
+    await context.close();
+  }
+});
