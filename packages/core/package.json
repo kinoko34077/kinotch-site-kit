@@ -1,0 +1,9 @@
+{
+  "name": "@kinotch/site-kit-core",
+  "version": "0.0.0-experimental",
+  "private": true,
+  "type": "module",
+  "exports": { ".": { "types": "./index.d.mts", "default": "./index.mjs" } },
+  "engines": { "node": ">=20" },
+  "sideEffects": false
+}
