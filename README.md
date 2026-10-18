@@ -1,6 +1,6 @@
 # KiNoTch. Site Kit
 
-Reusable and configurable Website/Application Shell + standard feature kit for KiNoTch.'s heterogeneous public websites. **Initial spec/bootstrap only**; no library implementation, consumer migration, release or deployment has been accepted yet.
+Reusable and configurable Website/Application Shell + standard feature kit for KiNoTch.'s heterogeneous public websites. **M0 browser preview published; M1 experimental core and dual-host adapters implemented and tested.** Formal product acceptance, consumer migration and reusable package release are **not completed**.
 
 ## Public M0 verification pages
 
@@ -9,6 +9,12 @@ Reusable and configurable Website/Application Shell + standard feature kit for K
 - [Pages publishing and verification Issue #16](https://github.com/kinoko34077/kinotch-site-kit/issues/16)
 
 Both pages are **M0 experimental verification fixtures**, not a released reusable library or migration of existing websites. Actual publication is controlled by `.github/workflows/m0-pages.yml` and post-deployment public URL tests; do not mistake repository visibility or successful toy tests for general product acceptance.
+
+## Experimental M1 implementation
+
+- [Core](packages/core/README.md): strictly validated version-1 site configuration, route links/breadcrumbs, layer precedence, fail-safe controller lifecycle; `0.0.0-experimental` is **private**, not a released package.
+- [Vanilla and React adapters](packages/adapters/README.md): both Pages preview hosts use the same SiteDefinition; stable package build/SSR/consumer migration remain future work.
+- [Owning core Issue #4](https://github.com/kinoko34077/kinotch-site-kit/issues/4), [adapter Issue #8](https://github.com/kinoko34077/kinotch-site-kit/issues/8) and [roadmap #10](https://github.com/kinoko34077/kinotch-site-kit/issues/10).
 
 ## Design priorities
 End-user and developer usability > flexibility/extensibility/portability > coverage of standard expectations > reuse of maintained OSS > safety/performance and maintainability > convenience of legacy integration.
