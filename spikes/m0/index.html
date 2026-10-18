@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Site Kit M0 / Vanilla</title></head>
+<body><div id="host"><wa-page id="site-shell" mobile-breakpoint="760">
+<header slot="header"><strong>Vanilla Site Kit fixture</strong> <wa-button id="toggle-nav" data-toggle-nav size="small">メニュー</wa-button> <wa-button id="theme" size="small">テーマ</wa-button></header>
+<nav slot="navigation" aria-label="主ナビゲーション"><a href="#home">ホーム</a> <a href="#detail">詳細</a></nav>
+<main id="main"><h1>Vanilla fixture</h1><wa-breadcrumb id="breadcrumbs"><wa-breadcrumb-item href="#home">ホーム</wa-breadcrumb-item><wa-breadcrumb-item>詳細</wa-breadcrumb-item></wa-breadcrumb>
+<p>仕様ではなくM0技術検証。既存サイトを変更しません。</p>
+<input id="editor" aria-label="入力中のホットキー隔離検証" value="preserved">
+<wa-button id="notify">通知</wa-button><wa-button id="record">割当記録</wa-button>
+<output id="recorded" aria-live="polite">未割当</output>
+<wa-toast id="notices"></wa-toast>
+</main>
+<footer slot="footer">M0 test only</footer></wa-page></div>
+<script type="module" src="/src/vanilla.js"></script></body></html>
