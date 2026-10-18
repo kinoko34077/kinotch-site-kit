@@ -79,3 +79,5 @@ wa-page[view="desktop"] #toggle-nav { display: none; }
 .status-columns h3 { font-size: .98rem; margin-bottom: .35rem; }
 .status-columns p { color: var(--demo-muted); margin: .4rem 0; }
 .tag.pending { background: var(--demo-bg); color: var(--demo-muted); }
+.core-links { display: flex; flex-wrap: wrap; gap: .65rem; }
+.core-links a { display: inline-block; padding: .35rem .6rem; border-radius: 9px; background: var(--demo-accent-soft); }
