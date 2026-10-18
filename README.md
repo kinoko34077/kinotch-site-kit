@@ -17,5 +17,5 @@ SiteDefinition/config core; responsive header/footer/nav/sidebar/hamburger/bread
 
 ## Canon and workflow
 Read docs/SPECIFICATION.md then parent Issue and related decomposition. devflow AGENTS.md remains the cross-repo operating authority. UI and code guidance: kinoko34077/.ai-guidelines.
-The initial repository is **private by safe devflow default** because no public visibility choice was established for this new repository; visibility/credentials/releases/deploy require separate authorization. No license guessed. Creation via trusted devflow repository-bootstrap.v1 only.
+The repository was **created private by the devflow bootstrap default**, then made **PUBLIC on 2026-10-18 by explicit user request**, with visibility independently verified on GitHub. Public source visibility does **not** authorize consumer-site deployment, package release, credential/permission changes, or inclusion of secrets/private data. No license has been selected yet. Creation used trusted devflow repository-bootstrap.v1.
 Representative consumers checked before bootstrap: microtone-piano, Gomoku-5D, frequency-warp-vst/web-demo, tarot-draw, lyric_reader_page, line-style-viewer. No consumer was changed.
