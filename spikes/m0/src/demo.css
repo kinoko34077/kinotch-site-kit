@@ -58,3 +58,22 @@ wa-breadcrumb { margin-top: .2rem; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Preview-owned desktop menu: wa-page's data-toggle-nav only opens mobile drawers. */
+.demo-header { position: relative; }
+.menu-trigger { font: inherit; font-weight: 650; color: var(--demo-text); background: var(--demo-panel); border: 1px solid var(--demo-border); padding: .43rem .75rem; border-radius: 9px; cursor: pointer; min-height: 40px; }
+.menu-trigger:hover, .menu-trigger[aria-expanded="true"] { background: var(--demo-accent-soft); }
+.desktop-menu[hidden] { display: none !important; }
+.desktop-menu { position: absolute; right: .8rem; top: calc(100% - .15rem); min-width: min(270px, calc(100vw - 1.6rem)); z-index: 50; box-shadow: 0 13px 36px #0002; background: var(--demo-panel); border: 1px solid var(--demo-border); border-radius: 12px; padding: .45rem; display: flex; flex-direction: column; gap: .1rem; }
+.desktop-menu a { display: block; color: var(--demo-text); text-decoration: none; border-radius: 8px; padding: .55rem .8rem; }
+.desktop-menu a:hover, .desktop-menu a:focus-visible { background: var(--demo-accent-soft); }
+/* Desktop demo uses the same nav entries in its compact dropdown. Mobile retains the upstream drawer. */
+wa-page[view="desktop"] { --menu-width: 0px; }
+wa-page[view="desktop"]::part(menu) { display: none; }
+wa-page[view="mobile"] .desktop-only { display: none; }
+wa-page[view="desktop"] #toggle-nav { display: none; }
+.feature-status { margin-block: 1rem; background: var(--demo-panel); border: 1px solid var(--demo-border); border-radius: 16px; padding: clamp(1rem, 3vw, 1.4rem); }
+.status-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 1.15rem; }
+.status-columns h3 { font-size: .98rem; margin-bottom: .35rem; }
+.status-columns p { color: var(--demo-muted); margin: .4rem 0; }
+.tag.pending { background: var(--demo-bg); color: var(--demo-muted); }
