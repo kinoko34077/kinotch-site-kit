@@ -13,8 +13,8 @@
 | **Zag.js** | [official docs](https://zagjs.com/) | **DEFER** unless a demonstrated unsolved interaction-state gap. Avoid overlapping dialog/drawer implementations. |
 | **Shoelace 2.20.1** | [repo sunset notice](https://github.com/shoelace-style/shoelace), [successor migration](https://webawesome.com/docs/resources/migrating-from-shoelace) | **NOT PRIMARY**: MIT but upstream discontinued active development. Historical fallback/technical comparison only, not an equivalent maintained default. |
 
-## 2. Important licensing and free-feature correction
-`wa-page`, `wa-breadcrumb`, `wa-dialog`, `wa-drawer`, and ordinary button/menu controls are **Core documentation features**; the Core license permits commercial use and self-hosting if notices are included. However, the Web Awesome catalog currently explicitly marks **Toast/Toast Item**, **Combobox**, **Date Input/Picker**, **File Input**, and charts as **Pro**. The initial `docs/SPECIFICATION.md` describes “toast” among the Web Awesome-backed controls: **do not interpret that as Core capability**. For status notices use Core-available `wa-callout`/ordinary DOM + independent thin nonblocking overlay if justified, or choose a separately licensed maintained OSS; **never silently bundle Pro assets**. Pro patterns/themes/icons similarly require per-asset review, even where layout docs are open.
+## 2. Current Core vs Pro license boundary (correction)
+`wa-page`, `wa-breadcrumb`, `wa-dialog`, `wa-drawer`, `wa-toast`, `wa-toast-item`, and ordinary buttons/menus are **Core** at the pinned 3.14.0 reference. Crucially, the **official [3.11.0 changelog](https://webawesome.com/docs/resources/changelog)** (2026-07-30) documents `wa-toast` and `wa-toast-item` moving from Pro into Core, corroborated by the current [Toast docs](https://webawesome.com/docs/components/toast) and [Toast Item docs](https://webawesome.com/docs/components/toast-item). A separately supplied toast library is not needed merely for the Core free requirement. An older version of the [Core license page](https://webawesome.com/license) surfaced a stale navigation catalog marking toast Pro; chronological release notes and component-specific current docs take precedence. **Combobox**, **Date Input/Picker**, **File Input**, charts and Pro assets remain separate licensing questions. Core license permits commercial use/self-hosting with MIT notices; **never silently bundle Pro assets**. Avoid copying Pro patterns/themes/icons.
 License requirement: preserve MIT copyright/permission notices for packages and bundled substantial portions; do not use Web Awesome branding in a way implying affiliation. New Site Kit's own repository license remains undecided until a separate license choice.
 
 ## 3. `wa-page` architecture and ownership precautions
@@ -26,7 +26,7 @@ Use `SiteDefinition` route/action registry independent of Web Awesome internal a
 |---|---|---|
 | Web Awesome Core `wa-page` available since 3.5 | **DOC VERIFIED** (official changelog) | Install `3.14.0` and render slots; test no global CSS leaks |
 | Core MIT + self hosting | **DOC VERIFIED**, transitive dependency audit **UNVERIFIED** | Install with frozen lockfile, inspect SBOM and notices, exclude Pro assets |
-| Toast should be Core | **FAIL**: currently Pro catalog | remove Core assumption; use distinct OSS/native solution |
+| Toast/Toast Item in Web Awesome Core 3.14.0 | **DOC VERIFIED**: v3.11.0 changelog explicitly moved them Pro→Core | Test pinned import/visual behavior in actual installed package; no substitute library required for licensing alone |
 | TanStack recorder exists vanilla & React | **DOC VERIFIED** | Run keyboard/IME/conflict, remount/dispose tests against `0.13.0` |
 | Stable TanStack API | **NOT PROVEN** (current docs/npm identify alpha) | lock exact version behind Site Kit facade; CI regression on upgrade |
 | Current browser/runtime dependencies installed | **BLOCKED** in isolated runner | Install through approved existing npm-capable workflow; do not add token/provider/paid service |
@@ -43,7 +43,7 @@ Use `SiteDefinition` route/action registry independent of Web Awesome internal a
 - Distinguish `UNVERIFIED` from fail: pending use of a normal project workflow means no technical rejection of selected vendors. Native CI execution may depend on Actions free quota; verify allowable route before execution. Avoid automatic paid providers.
 
 ## 6. Next technical checks in strict order
-1. Fix inaccurate initial description implying Web Awesome **Core Toast**; do not remove toast-like capability from requirements, only change its proposed provider.
+1. Preserve Web Awesome Core Toast/Toast Item as a built-in candidate for v3.14.0 (moved to Core in 3.11.0); avoid depending on stale sidebar/license catalogs; confirm actual installed package.
 2. Build **vanilla ESM + React/Vite** isolated fixture on pinned versions. Run page slot, burger/drawer focus, theme, breadcrumb with basePath, shortcut record/cancel/conflict/IME and cleanup; capture browser evidence and bundle graph.
 3. Audit dependency trees and free/Pro boundary. Test alternative UI provider only if a hard failure or prohibitive size/styling collision is verified.
 4. Converge with [M0 site inventory](M0_SITE_INVENTORY.md) for architecture gate. Keep M1 implementation blocked until M0 acceptance criteria or explicitly narrowed, recorded exceptions.
