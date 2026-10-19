@@ -24,13 +24,26 @@
     "./history": {
       "types": "./history.d.mts",
       "default": "./history.mjs"
+    },
+    "./i18n": {
+      "types": "./i18n.d.mts",
+      "default": "./i18n.mjs"
     }
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "i18next": "26.4.2"
   },
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "test:types": "tsc --project tsconfig.json"
+  },
+  "peerDependencies": {
+    "i18next": "^26.4.2"
+  },
+  "peerDependenciesMeta": {
+    "i18next": {
+      "optional": true
+    }
   }
 }
