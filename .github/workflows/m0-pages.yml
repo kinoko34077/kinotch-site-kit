@@ -51,6 +51,13 @@ jobs:
             exit 1
           fi
           touch dist/.nojekyll
+      - name: Measure emitted asset cost against previous CSS baseline
+        run: node scripts/audit-build-size.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m0-pages-build-size
+          path: spikes/m0/artifacts/m0-build-size.json
+          retention-days: 14
       - name: Configure existing GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload verified static artifact
