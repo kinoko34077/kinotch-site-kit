@@ -61,9 +61,9 @@ test('selected modules retain caller ordering and ignore duplicated IDs',async()
 });
 test('standard manifest loads only selected library functionality',async()=>{
   const c=createFeatureCatalog();
-  assert.deepEqual(c.available(),['actions','pages','search','seo','history']);
+  assert.deepEqual(c.available(),['actions','pages','search','seo','history','i18n']);
   const m=await c.loadSelected(['history']);
   assert.equal(typeof m.history.createHistory,'function');
-  for(const feature of ['actions','pages','search','seo'])assert.equal(c.loaded(feature),false);
+  for(const feature of ['actions','pages','search','seo','i18n'])assert.equal(c.loaded(feature),false);
   assert.equal(c.loaded('history'),true);
 });
