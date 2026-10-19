@@ -27,7 +27,7 @@ try{
   if(!entry)throw new Error('Missing catalog entry in esbuild metafile');
   const [entryPath,entryMeta]=entry;
   const lazy=entryMeta.imports.filter(x=>x.kind==='dynamic-import');
-  if(lazy.length!==5)throw new Error('Expected exactly five independently lazy optional modules, got '+lazy.length);
+  if(lazy.length!==6)throw new Error('Expected exactly six independently lazy optional modules, got '+lazy.length);
   if(entryMeta.imports.some(x=>x.kind!=='dynamic-import')){
     // Native runtime entry has no static feature imports. Separate static shared helper
     // files would require explicit performance review and a budget adjustment.

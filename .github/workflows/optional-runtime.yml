@@ -32,6 +32,8 @@ jobs:
         run: npm install --prefix packages/runtime --no-audit --no-fund --no-package-lock
       - name: Typecheck catalog contract
         run: npm run --prefix packages/runtime test:types
+      - name: Install opt-in peer in owning feature package for bundle-only PoC
+        run: npm install --prefix packages/features --no-package-lock --no-audit --no-fund
       - name: Quantify genuinely lazy ESM code chunks
         run: npm run --prefix packages/runtime audit:bundle
       - name: Keep bounded code-size evidence
