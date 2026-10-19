@@ -12,6 +12,10 @@
     "./pages": {
       "types": "./pages.d.mts",
       "default": "./pages.mjs"
+    },
+    "./seo": {
+      "types": "./seo.d.mts",
+      "default": "./seo.mjs"
     }
   },
   "devDependencies": {
