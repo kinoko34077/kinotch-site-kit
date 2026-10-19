@@ -10,6 +10,7 @@ import { HotkeyRecorder } from '@tanstack/hotkeys';
 import { createSiteController } from '../../../packages/core/index.mjs';
 import { createVanillaNavigationAdapter } from '../../../packages/adapters/vanilla.mjs';
 import { siteInputForPath } from './site-contract.js';
+import { createPageMetadata, applyPageMetadata } from '../../../packages/features/seo.mjs';
 import { createActionRegistry } from '../../../packages/features/actions.mjs';
 import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
 
@@ -104,6 +105,10 @@ onViewChanged();
 // This separate, vendor-free controller owns only its dedicated demo navigation host.
 const coreController = createSiteController(siteInputForPath(location.pathname));
 coreController.mount(document.getElementById('core-nav'), createVanillaNavigationAdapter({ currentRouteId: 'home' }));
+const restoreSeo = applyPageMetadata(document, createPageMetadata(coreController.definition, {
+  origin: 'https://kinoko34077.github.io',routeId:'home',
+  description:'KiNoTch. Site Kitの公開機能検証。標準ナビゲーション、テーマ、ヘルプとショートカットを操作できます。'
+}));
 // M3 experimental composition: opt-in authored pages + host-owned action registry.
 const pages = previewPageRegistry();
 const pageNav = document.getElementById('std-page-nav');
@@ -186,6 +191,7 @@ function dispose() {
   recorder.destroy();
   actions.dispose();
   shortcutEvents.abort();
+  restoreSeo();
   coreController.dispose();
   themeButton.removeEventListener('click', onTheme);
   noticeButton.removeEventListener('click', onNotify);
