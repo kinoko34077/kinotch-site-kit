@@ -4,7 +4,7 @@
 import {build} from 'esbuild';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,resolve,basename} from 'node:path';
+import {join,resolve,basename,relative} from 'node:path';
 import {gzipSync,brotliCompressSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 
@@ -23,7 +23,7 @@ try{
   });
   const entries=Object.entries(result.metafile.outputs);
   const entry=entries.find(([name,info])=>!!info.entryPoint &&
-    info.entryPoint.replaceAll('\\','/').endsWith('/catalog.mjs'));
+    (info.entryPoint.replaceAll('\\','/').endsWith('/catalog.mjs') || info.entryPoint==='catalog.mjs'));
   if(!entry)throw new Error('Missing catalog entry in esbuild metafile');
   const [entryPath,entryMeta]=entry;
   const lazy=entryMeta.imports.filter(x=>x.kind==='dynamic-import');
@@ -38,14 +38,15 @@ try{
   }
   const records=[];
   for(const [path,info] of entries){
-    const bytes=await readFile(path);
+    const actualPath=resolve(path);
+    const bytes=await readFile(actualPath);
     const gz=gzipSync(bytes,{level:9}).length;
     const br=brotliCompressSync(bytes).length;
-    records.push({file:basename(path),relativePath:path.replace(directory+'/',''),raw:bytes.length,gzip:gz,brotli:br,
+    records.push({file:basename(path),relativePath:relative(directory,actualPath),raw:bytes.length,gzip:gz,brotli:br,
       entry:!!info.entryPoint, imports:info.imports.filter(x=>!x.external).length,
       modules:Object.keys(info.inputs).length});
   }
-  const initial=records.find(x=>x.relativePath===entryPath.replace(directory+'/',''));
+  const initial=records.find(x=>x.relativePath===relative(directory,resolve(entryPath)));
   if(!initial)throw new Error('Entry footprint missing');
   // Initial *budget*, not field metric. Revisit only with measured baseline evidence.
   if(initial.gzip>3000)throw new Error('Initial feature catalog exceeded 3 kB gzip budget: '+initial.gzip);
