@@ -102,18 +102,6 @@ export function createActionRegistry({ actions, target, storage, storageKey = 's
     publish();
     return combo;
   }
-  if (storage) {
-    try {
-      const data = JSON.parse(storage.getItem(storageKey) ?? 'null');
-      if (data?.version === 1 && isPlain(data.bindings)) {
-        for (const [id, combo] of Object.entries(data.bindings)) {
-          if (!map.has(id) || !(combo === null || typeof combo === 'string')) continue;
-          try { assign(id, combo, false); } catch { /* invalid/stale user settings ignored per action */ }
-        }
-      }
-      storageStatus = 'loaded';
-    } catch { storageStatus = 'unavailable'; }
-  }
   function handle(event) {
     if (disposed || event.defaultPrevented || event.isComposing || event.key === 'Process' ||
         event.repeat || (event.type && event.type !== 'keydown')) return;
@@ -167,5 +155,17 @@ export function createActionRegistry({ actions, target, storage, storageKey = 's
       map.clear(); assigned.clear(); scopes.clear();
     }
   };
+  if (storage) {
+    try {
+      const data = JSON.parse(storage.getItem(storageKey) ?? 'null');
+      if (data?.version === 1 && isPlain(data.bindings)) {
+        for (const [id, combo] of Object.entries(data.bindings)) {
+          if (!map.has(id) || !(combo === null || typeof combo === 'string')) continue;
+          try { assign(id, combo, false); } catch { /* invalid/stale user settings ignored per action */ }
+        }
+      }
+      storageStatus = 'loaded';
+    } catch { storageStatus = 'unavailable'; }
+  }
   return api;
 }
