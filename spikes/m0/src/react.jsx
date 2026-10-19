@@ -7,6 +7,7 @@ import { createReactStateAdapter } from '../../../packages/adapters/react.mjs';
 import { siteInputForPath } from './site-contract.js';
 import { createPageMetadata, applyPageMetadata } from '../../../packages/features/seo.mjs';
 import { createActionRegistry } from '../../../packages/features/actions.mjs';
+import { searchIndexFromPages } from '../../../packages/features/search.mjs';
 import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
 import '@awesome.me/webawesome/dist/styles/webawesome.css';
 import './demo.css';
@@ -21,12 +22,14 @@ const LABELS = { system: 'システム', light: 'ライト', dark: 'ダーク' }
 const ICONS = { system: '🖥️', light: '☀️', dark: '🌙' };
 const STORAGE_KEY = 'kinotch-site-kit-m0-demo-theme';
 const previewPages = previewPageRegistry();
+const previewSearch = searchIndexFromPages(previewPages);
 
 function Fixture() {
   const [count, setCount] = useState(0);
   const [coreSite, setCoreSite] = useState(null);
   const [recorded, setRecorded] = useState('未割当');
   const [standardPage, setStandardPage] = useState('help');
+  const [searchText, setSearchText] = useState('');
   const [shortcuts, setShortcuts] = useState([]);
   const [shortcutInput, setShortcutInput] = useState(PREVIEW_SHORTCUTS.notice);
   const [shortcutMessage, setShortcutMessage] = useState('');
@@ -232,6 +235,28 @@ function Fixture() {
             </output>
             <output id="react-notice-count" className="demo-output" aria-live="polite">通知を実行した回数: {noticeCount}</output>
           </div>
+        </div>
+      </section>
+      <section className="feature-status" id="react-local-search-section">
+        <h2>サイト内検索（公開可能な標準ページの見本）</h2>
+        <p>有効なヘルプ・概要だけを端末内で検索します。入力内容は送信しません。</p>
+        <label htmlFor="react-local-search-query">検索する文字</label>
+        <input id="react-local-search-query" type="search" maxLength={120} autoComplete="off"
+          placeholder="例：メニュー、テーマ" value={searchText}
+          onChange={event=>setSearchText(event.target.value)}/>
+        <output id="react-local-search-status" className="demo-output" aria-live="polite">
+          {!searchText.trim() ? 'キーワードを入力すると結果が表示されます'
+            : (previewSearch.query(searchText).length ?
+              previewSearch.query(searchText).length + ' 件見つかりました' : '該当するページはありません')}
+        </output>
+        <div id="react-local-search-results" className="search-results" aria-label="サイト内検索の結果">
+          {searchText.trim() && previewSearch.query(searchText).map(item=>
+            <button key={item.id} type="button" data-result-page={item.id} onClick={()=>{
+              setStandardPage(item.id);
+              document.getElementById('react-combo-features')?.scrollIntoView({block:'nearest',behavior:'auto'});
+              document.getElementById('react-page-title')?.focus();
+            }}><strong>{item.title}</strong><small>{item.snippet}</small></button>
+          )}
         </div>
       </section>
       <section className="feature-status">
