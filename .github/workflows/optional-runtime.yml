@@ -1,0 +1,42 @@
+name: Site Kit optional-module runtime and bundle audit
+
+on:
+  pull_request:
+    paths:
+      - 'packages/runtime/**'
+      - 'packages/features/**'
+      - '.github/workflows/optional-runtime.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/runtime/**'
+      - 'packages/features/**'
+      - '.github/workflows/optional-runtime.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  optional-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Native isolated import and history tests
+        run: node --test packages/runtime/tests/*.test.mjs packages/features/tests/history.test.mjs
+      - name: Install build/test tools only (esbuild and TypeScript)
+        run: npm install --prefix packages/runtime --no-audit --no-fund --no-package-lock
+      - name: Typecheck catalog contract
+        run: npm run --prefix packages/runtime test:types
+      - name: Quantify genuinely lazy ESM code chunks
+        run: npm run --prefix packages/runtime audit:bundle
+      - name: Keep bounded code-size evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-kit-optional-bundle-size
+          path: packages/runtime/artifacts/bundle-report.json
+          retention-days: 14
