@@ -10,6 +10,8 @@ import { HotkeyRecorder } from '@tanstack/hotkeys';
 import { createSiteController } from '../../../packages/core/index.mjs';
 import { createVanillaNavigationAdapter } from '../../../packages/adapters/vanilla.mjs';
 import { siteInputForPath } from './site-contract.js';
+import { createActionRegistry } from '../../../packages/features/actions.mjs';
+import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
 
 const shell = document.getElementById('site-shell');
 const themeButton = document.getElementById('theme');
@@ -102,10 +104,78 @@ onViewChanged();
 // This separate, vendor-free controller owns only its dedicated demo navigation host.
 const coreController = createSiteController(siteInputForPath(location.pathname));
 coreController.mount(document.getElementById('core-nav'), createVanillaNavigationAdapter({ currentRouteId: 'home' }));
+// M3 experimental composition: opt-in authored pages + host-owned action registry.
+const pages = previewPageRegistry();
+const pageNav = document.getElementById('std-page-nav');
+const pageTitle = document.getElementById('std-page-title');
+const pageContent = document.getElementById('std-page-content');
+const shortcutStatus = document.getElementById('shortcut-status');
+const shortcutInput = document.getElementById('shortcut-input');
+const shortcutEvents = new AbortController();
+function openSamplePage(id) {
+  const page = pages.renderText(id); // Will fail closed if disabled/missing legal content.
+  pageTitle.textContent = page.title;
+  pageContent.textContent = page.text; // text-only; no config HTML injection.
+  for (const button of pageNav.querySelectorAll('button')) {
+    button.setAttribute('aria-current', button.dataset.page === id ? 'page' : 'false');
+  }
+}
+for (const item of pages.links()) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = item.title;
+  button.dataset.page = item.id;
+  button.addEventListener('click', () => openSamplePage(item.id), { signal: shortcutEvents.signal });
+  pageNav.append(button);
+}
+openSamplePage('help');
+let shortcutFeedback = '';
+const actions = createActionRegistry({
+  target: document,
+  storage: (() => { try { return localStorage; } catch { return undefined; } })(),
+  storageKey: 'kinotch-site-kit-demo-shortcuts-v1',
+  actions: [
+    {id:'demo:notice',title:'通知を表示',defaultShortcut:PREVIEW_SHORTCUTS.notice,
+      run() { noticeButton.click(); }},
+    {id:'demo:help',title:'ヘルプを表示',defaultShortcut:PREVIEW_SHORTCUTS.help,
+      run() { openSamplePage('help'); pageTitle.focus(); }}
+  ],
+  onChange: () => renderShortcutStatus()
+});
+function renderShortcutStatus() {
+  const bindings = actions.list();
+  const current = bindings.find(a => a.id === 'demo:notice').shortcut ?? '未設定';
+  shortcutStatus.textContent = shortcutFeedback || ('通知: ' + current + ' / ヘルプ: ' + actions.get('demo:help'));
+}
+renderShortcutStatus();
+function attemptBind() {
+  try {
+    shortcutFeedback = '';
+    const current = actions.bind('demo:notice', shortcutInput.value);
+    shortcutInput.value = current;
+    renderShortcutStatus();
+  } catch (error) {
+    shortcutFeedback = error instanceof Error ? error.message : '設定に失敗しました';
+    renderShortcutStatus();
+  }
+}
+document.getElementById('shortcut-apply').addEventListener('click', attemptBind, { signal: shortcutEvents.signal });
+document.getElementById('shortcut-clear').addEventListener('click', () => {
+  actions.unbind('demo:notice'); shortcutFeedback = '通知のキー操作を解除しました';renderShortcutStatus();
+}, { signal: shortcutEvents.signal });
+document.getElementById('shortcut-reset').addEventListener('click', () => {
+  actions.reset('demo:notice'); shortcutInput.value = actions.get('demo:notice');
+  shortcutFeedback = '';renderShortcutStatus();
+}, { signal: shortcutEvents.signal });
+document.getElementById('shortcut-notice').addEventListener('click', () => actions.invoke('demo:notice'), { signal: shortcutEvents.signal });
+document.getElementById('shortcut-help').addEventListener('click', () => actions.invoke('demo:help'), { signal: shortcutEvents.signal });
+
 function dispose() {
   if (state.disposed) return;
   state.disposed = true;
   recorder.destroy();
+  actions.dispose();
+  shortcutEvents.abort();
   coreController.dispose();
   themeButton.removeEventListener('click', onTheme);
   noticeButton.removeEventListener('click', onNotify);
@@ -117,5 +187,5 @@ function dispose() {
   viewObserver.disconnect();
   systemTheme.removeEventListener?.('change', onSystemThemeChange);
 }
-window.__m0 = { state, shell, coreController, dispose };
+window.__m0 = { state, shell, coreController, actions, pages, dispose };
 window.addEventListener('pagehide', dispose, { once: true });
