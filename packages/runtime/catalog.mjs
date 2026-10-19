@@ -9,7 +9,8 @@ export const standardFeatureLoaders = Object.freeze({
   pages: () => import('../features/pages.mjs'),
   search: () => import('../features/search.mjs'),
   seo: () => import('../features/seo.mjs'),
-  history: () => import('../features/history.mjs')
+  history: () => import('../features/history.mjs'),
+  i18n: () => import('../features/i18n.mjs')
 });
 
 /**
