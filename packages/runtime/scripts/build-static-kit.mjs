@@ -11,7 +11,7 @@ import {gzipSync,brotliCompressSync} from 'node:zlib';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const here=resolve(fileURLToPath(new URL('../',import.meta.url)));
-const root=resolve(here,'..','..');
+const root=resolve(here,'..');
 const out=resolve(here,'artifacts','static-kit');
 const entries={
   core:resolve(root,'core/index.mjs'),
