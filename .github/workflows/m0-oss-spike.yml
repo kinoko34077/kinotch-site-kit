@@ -43,4 +43,5 @@ jobs:
           npm run build
           test -s dist/index.html
           test -s dist/react.html
+          test -s dist/404.html
           test -n "$(find dist/assets -maxdepth 1 -name '*.js' -print -quit)"

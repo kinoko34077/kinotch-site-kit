@@ -356,3 +356,31 @@ test('React uses the same page registry and restores action assignments from Van
   await page.evaluate(() => window.__m0ReactDispose());
   await expect(page.locator('#react-host')).toBeEmpty();
 });
+
+
+test('SEO metadata derives from same SiteDefinition and route for both hosts', async ({page}) => {
+  await page.goto('./');
+  await expect(page).toHaveTitle(/Vanilla JS 版 \| KiNoTch. Site Kit Preview/);
+  const prefix = process.env.M0_BASE_URL ? '/kinotch-site-kit/' : '/';
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href','https://kinoko34077.github.io'+prefix);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content',/公開機能検証/);
+  await page.goto('./react.html');
+  await expect(page).toHaveTitle(/React 版 \| KiNoTch. Site Kit Preview/);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href','https://kinoko34077.github.io'+prefix+'react.html');
+});
+
+test('custom not-found page explains recovery and cannot be indexed', async ({page}) => {
+  await page.goto('./404.html');
+  await expect(page.locator('h1')).toHaveText('ページが見つかりません');
+  await expect(page.locator('a[href="/kinotch-site-kit/"]')).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','noindex, nofollow');
+});
+
+test('unknown public Pages path responds with real 404 fallback', async ({ page }) => {
+  test.skip(!process.env.M0_BASE_URL, 'Real GitHub Pages response required, not Vite SPA fallback');
+  const response = await page.goto('./__missing_site_kit_route__');
+  expect(response?.status()).toBe(404);
+  await expect(page.locator('h1')).toHaveText('ページが見つかりません');
+});

@@ -5,6 +5,7 @@ import { useHotkeyRecorder } from '@tanstack/react-hotkeys';
 import { createSiteController, navigation, breadcrumbs } from '../../../packages/core/index.mjs';
 import { createReactStateAdapter } from '../../../packages/adapters/react.mjs';
 import { siteInputForPath } from './site-contract.js';
+import { createPageMetadata, applyPageMetadata } from '../../../packages/features/seo.mjs';
 import { createActionRegistry } from '../../../packages/features/actions.mjs';
 import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
 import '@awesome.me/webawesome/dist/styles/webawesome.css';
@@ -54,9 +55,14 @@ function Fixture() {
   useEffect(() => {
     const controller = createSiteController(siteInputForPath(location.pathname));
     controller.mount({}, createReactStateAdapter(setCoreSite));
+    const restoreSeo = applyPageMetadata(document, createPageMetadata(controller.definition, {
+      origin: 'https://kinoko34077.github.io',routeId:'react',
+      description:'KiNoTch. Site Kit共通機能をReactで使う検証ページ。'
+    }));
     window.__m0ReactCore = controller;
     return () => {
       controller.dispose();
+      restoreSeo();
       window.__m0ReactCore = undefined;
     };
   }, []);

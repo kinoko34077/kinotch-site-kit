@@ -44,6 +44,7 @@ jobs:
           npm run build
           test -s dist/index.html
           test -s dist/react.html
+          test -s dist/404.html
           test -n "$(find dist/assets -maxdepth 1 -name '*.js' -print -quit)"
           if grep -Eq '(src|href)="/assets/' dist/*.html; then
             echo "::error::Root-absolute asset path is incompatible with project Pages"

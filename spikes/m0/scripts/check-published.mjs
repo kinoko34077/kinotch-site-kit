@@ -45,3 +45,12 @@ for (const path of paths) {
   }
   console.log('PUBLIC PASS', response.status, pageURL.href, 'local_assets=', assetLinks.length);
 }
+
+const fallback = await retry(new URL('404.html', root), 4);
+const fallbackHtml = await fallback.text();
+assert.match(fallbackHtml, /ページが見つかりません/);
+assert.match(fallbackHtml, /noindex, nofollow/);
+const missing = await fetch(new URL('__site_kit_missing_route__', root), { redirect: 'follow' });
+assert.equal(missing.status, 404, 'Unknown route must have real 404 status');
+assert.match(await missing.text(), /ページが見つかりません/, 'Unknown route should use site-owned 404 page');
+console.log('PUBLIC PASS custom 404 status',missing.status);
