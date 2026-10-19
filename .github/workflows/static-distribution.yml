@@ -1,0 +1,45 @@
+name: Site Kit immutable static ESM distribution proof
+
+on:
+  pull_request:
+    paths:
+      - 'packages/core/**'
+      - 'packages/adapters/**'
+      - 'packages/features/**'
+      - 'packages/runtime/**'
+      - '.github/workflows/static-distribution.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/core/**'
+      - 'packages/adapters/**'
+      - 'packages/features/**'
+      - 'packages/runtime/**'
+      - '.github/workflows/static-distribution.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-esm-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned build-only esbuild and optional vendor
+        run: |
+          npm install --prefix packages/runtime --no-audit --no-fund --no-package-lock
+          npm install --prefix packages/features --no-audit --no-fund --no-package-lock
+      - name: Build immutable ESM files and execute contract smoke
+        run: node packages/runtime/scripts/build-static-kit.mjs
+      - name: Preserve unreleased static self-hosted distribution proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-kit-static-esm-unreleased
+          path: packages/runtime/artifacts/static-kit/**
+          retention-days: 14
+          if-no-files-found: error
