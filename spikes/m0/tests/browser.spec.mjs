@@ -158,6 +158,7 @@ test('React reset keeps typed text and semantic landmarks', async ({ page }) => 
   await page.goto('./react.html');
   await page.locator('#react-text').fill('保持したい文字');
   await page.locator('#react-action').click();
+  await expect(page.locator('#react-count')).toHaveText('1');
   await page.locator('#react-action').click();
   await expect(page.locator('#react-count')).toHaveText('2');
   await page.locator('#react-reset').click();
