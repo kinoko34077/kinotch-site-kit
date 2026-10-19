@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Kit / 独立HTML配布検証</title>
+<style>
+  :root{font:16px/1.5 system-ui,sans-serif;color-scheme:light dark}
+  body{max-width:52rem;margin:auto;padding:1rem}
+  button,select{font:inherit;min-height:2.75rem;margin:.25rem;padding:.25rem .8rem}
+  button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #7788ee;outline-offset:2px}
+  #navigation{border:1px solid currentColor;border-radius:.75rem;padding:.6rem}
+  #navigation a{display:inline-block;margin:.4rem}
+  output{display:block;padding:.5rem;min-height:1.5rem}
+</style>
+</head>
+<body>
+<a href="#main">本文へ移動</a>
+<header><h1>独立した静的HTMLサイト</h1><p>バンドラーもReactも使わないSite Kit導入試験</p></header>
+<main id="main">
+<section aria-label="試験用ナビゲーション"><div id="navigation"></div></section>
+<section>
+<h2>操作検証</h2>
+<button id="history" type="button">Undo/Redoを読み込む</button>
+<output id="history-output" aria-live="polite">履歴は未読込</output>
+<button id="locale" type="button">多言語を読み込む</button>
+<label for="language">言語</label>
+<select id="language" disabled><option value="ja">日本語</option><option value="en">English</option></select>
+<output id="translation" aria-live="polite">翻訳は未読込</output>
+<button id="dispose" type="button">共通ナビゲーションを解除</button>
+<output id="mount-status" aria-live="polite">初期化中</output>
+</section>
+</main>
+<footer>Site Kit 静的HTML検証ページ（本番製品ではありません）</footer>
+<script type="module">
+const status=document.querySelector('#mount-status');
+try{
+  // This manifest and its imports are local; no build tool runs on the consumer.
+  const manifestResponse=await fetch('./kit/manifest.json');
+  if(!manifestResponse.ok)throw new Error('manifest unavailable');
+  const manifest=await manifestResponse.json();
+  if(manifest.format!=='kinotch-site-kit-static-proof.v1' || manifest.isRelease!==false){
+    throw new Error('unexpected static artifact version');
+  }
+  const load=key=>{
+    if(!Object.hasOwn(manifest.entries,key))throw new Error('missing entry '+key);
+    const name=manifest.entries[key];
+    if(!/^[a-z0-9-]+-[A-Z0-9]+\.js$/i.test(name))throw new Error('unsafe module path');
+    return import(new URL('./kit/'+name,import.meta.url).href);
+  };
+  const core=await load('core');
+  const {createVanillaNavigationAdapter}=await load('vanilla-adapter');
+  const controller=core.createSiteController({
+    id:'independent',name:'独立サイト',basePath:'/probe/',
+    routes:[{id:'home',path:'/',title:'ホーム'},{id:'help',path:'/help',title:'ヘルプ',parent:'home'}]
+  });
+  controller.mount(document.querySelector('#navigation'),
+    createVanillaNavigationAdapter({currentRouteId:'home'}));
+  document.querySelector('#dispose').addEventListener('click',()=>{
+    controller.dispose();
+    status.textContent='共通ナビゲーションを解除済み';
+  });
+  document.querySelector('#history').addEventListener('click',async()=>{
+    try{
+      const {createHistory}=await load('history');
+      const history=createHistory({count:0});
+      history.commit({count:1});
+      const previous=history.undo();
+      document.querySelector('#history-output').textContent='Undo '+previous.count;
+      history.dispose();
+    }catch(err){document.querySelector('#history-output').textContent='失敗: '+err.message}
+  });
+  let locale=null;
+  document.querySelector('#locale').addEventListener('click',async()=>{
+    if(locale)return;
+    const button=document.querySelector('#locale');
+    button.disabled=true;
+    try{
+      const {createFeatureCatalog}=await load('runtime');
+      const kit=createFeatureCatalog();
+      const {createLocalization}=await kit.load('i18n');
+      locale=await createLocalization({resources:{
+        ja:{hello:'こんにちは'},en:{hello:'Hello'}
+      },language:'ja'});
+      document.querySelector('#language').disabled=false;
+      document.querySelector('#translation').textContent=locale.t('hello');
+    }catch(err){
+      document.querySelector('#translation').textContent='失敗: '+err.message;
+      button.disabled=false;
+    }
+  });
+  document.querySelector('#language').addEventListener('change',async event=>{
+    if(!locale)return;
+    await locale.setLanguage(event.currentTarget.value);
+    document.querySelector('#translation').textContent=locale.t('hello');
+  });
+  status.textContent='独立HTMLで初期化完了';
+  window.__staticFixture={manifest,controller};
+}catch(err){
+  status.textContent='初期化失敗: '+err.message;
+  throw err;
+}
+</script>
+</body>
+</html>
