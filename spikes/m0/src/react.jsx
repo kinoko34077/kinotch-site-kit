@@ -275,9 +275,9 @@ function Fixture() {
         <h2>実装状況</h2>
         <div className="status-columns">
           <div><h3>試せる <span className="tag">サンプル</span></h3>
-            <p>PC/スマホメニュー、テーマ切替、パンくず、React状態管理、キー記録、入力の保持。</p></div>
+            <p>PC/スマホメニュー、テーマ切替、パンくず、React状態管理、キーの割当変更、標準ページ、ローカル検索、入力保持。</p></div>
           <div><h3>今後作る <span className="tag pending">未実装</span></h3>
-            <p>ヘルプ／概要の見本と割当変更は試験可能。全サイト対応の正式API、法務内容の確定、検索・多言語・SEOなどは未完了。</p>
+            <p>ヘルプ／概要の見本と割当変更は試験可能。全サイト対応の正式API、法務内容の確定、サイト全体を検索するPagefind、多言語対応、SEOの総合受入は未完了。</p>
             <p><a href="https://github.com/kinoko34077/kinotch-site-kit/issues/10">ロードマップ ↗</a></p></div>
         </div>
       </section>
