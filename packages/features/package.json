@@ -20,6 +20,10 @@
     "./search": {
       "types": "./search.d.mts",
       "default": "./search.mjs"
+    },
+    "./history": {
+      "types": "./history.d.mts",
+      "default": "./history.mjs"
     }
   },
   "devDependencies": {
