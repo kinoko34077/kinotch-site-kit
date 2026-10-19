@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createSiteDefinition } from '../../core/index.mjs';
-import { createPageMetadata, createSitemapXml } from '../seo.mjs';
+import { createPageMetadata, createSitemapXml, applyPageMetadata } from '../seo.mjs';
 
 function fixture() {
   return createSiteDefinition({
@@ -54,7 +54,6 @@ test('metadata DOM adapter preserves title and existing tags after cleanup',()=>
   }
   // Validate a real browser in Playwright; this structure is deliberately a limited adapter unit probe.
   const doc={title:'Before',head,createElement(tag){return new Element(tag);}};
-  const { applyPageMetadata }=await import('../seo.mjs');
   const cleanup=applyPageMetadata(doc,{title:'After',description:'D',robots:'index, follow',canonical:'https://example.com/'});
   assert.equal(doc.title,'After');
   assert.equal(created.length,3);
