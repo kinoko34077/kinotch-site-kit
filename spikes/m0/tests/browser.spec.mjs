@@ -384,3 +384,37 @@ test('unknown public Pages path responds with real 404 fallback', async ({ page 
   expect(response?.status()).toBe(404);
   await expect(page.locator('h1')).toHaveText('ページが見つかりません');
 });
+
+
+test('Vanilla local search indexes only opted-in pages and reveals selected result', async ({page}) => {
+  await page.goto('./');
+  await expect(page.locator('#local-search-status')).toContainText('キーワード');
+  await page.locator('#local-search-query').fill('テーマ');
+  await expect(page.locator('#local-search-status')).toContainText('2 件');
+  await expect(page.locator('#local-search-results button')).toHaveCount(2);
+  await expect(page.locator('#local-search-results [data-result-page="privacy"]')).toHaveCount(0);
+  await page.locator('#local-search-query').fill('ナビゲーション');
+  await expect(page.locator('#local-search-results button')).toHaveCount(1);
+  await page.locator('#local-search-results [data-result-page="about"]').click();
+  await expect(page.locator('#std-page-title')).toHaveText('このサイトについて');
+  await expect(page.locator('#std-page-title')).toBeFocused();
+  await page.locator('#local-search-query').fill('未承認の機密ドラフト');
+  await expect(page.locator('#local-search-status')).toHaveText('該当するページはありません');
+  await expect(page.locator('#local-search-results button')).toHaveCount(0);
+});
+
+test('React and Vanilla local search use the same opted-in corpus and keep editing safe', async ({page}) => {
+  await page.goto('./react.html');
+  await page.locator('#react-local-search-query').fill('テーマ');
+  await expect(page.locator('#react-local-search-status')).toHaveText('2 件見つかりました');
+  await expect(page.locator('#react-local-search-results button')).toHaveCount(2);
+  await page.locator('#react-local-search-query').fill('ナビゲーション');
+  await expect(page.locator('#react-local-search-results button')).toHaveCount(1);
+  await page.locator('#react-local-search-results [data-result-page="about"]').click();
+  await expect(page.locator('#react-page-title')).toHaveText('このサイトについて');
+  await page.locator('#react-local-search-query').fill('設定されていない長い文字');
+  await expect(page.locator('#react-local-search-status')).toHaveText('該当するページはありません');
+  await page.locator('#react-text').fill('入力内容は維持');
+  await expect(page.locator('#react-text')).toHaveValue('入力内容は維持');
+  await expect(page.locator('#react-local-search-results button')).toHaveCount(0);
+});
