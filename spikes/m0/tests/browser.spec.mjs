@@ -452,3 +452,49 @@ test('React i18next loads on demand and does not replace React-owned input state
   await page.evaluate(()=>window.__m0ReactDispose());
   await expect(page.locator('#react-host')).toBeEmpty();
 });
+
+
+test('performance: Vanilla startup does not request React page or optional i18next vendor', async ({page}, testInfo) => {
+  const requested = [];
+  page.on('request', request => {
+    if (request.resourceType() === 'script' || request.resourceType() === 'stylesheet')
+      requested.push(new URL(request.url()).pathname);
+  });
+  await page.goto('./');
+  await expect(page.locator('#locale-message')).toHaveText('未読み込み');
+  await page.evaluate(() => document.fonts.ready);
+  const startup = [...requested];
+  const reactEntry = startup.filter(path => /\/(?:assets\/)?react-[^/]+\.js$/.test(path));
+  const i18nVendor = path => /(?:i18next|\/features\/i18n\.mjs)/i.test(path);
+  expect(reactEntry, 'Vanilla must not eagerly request React page entrypoint').toEqual([]);
+  expect(startup.filter(i18nVendor), 'No optional translator vendor at startup').toEqual([]);
+  await page.locator('#locale-enable').click();
+  await expect(page.locator('#locale-message')).toContainText('こんにちは');
+  const afterSelection = requested.filter(i18nVendor);
+  expect(afterSelection.length, 'Request optional translator only upon explicit activation').toBeGreaterThan(0);
+  await testInfo.attach('vanilla-script-network-audit', {
+    body: Buffer.from(JSON.stringify({startup,requestedAfterEnable:requested,optionalAfterClick:afterSelection},null,2)),
+    contentType:'application/json'
+  });
+});
+
+test('performance: React startup also leaves optional i18next unrequested', async ({page},testInfo) => {
+  const requested = [];
+  page.on('request', request => {
+    if (request.resourceType() === 'script' || request.resourceType() === 'stylesheet')
+      requested.push(new URL(request.url()).pathname);
+  });
+  await page.goto('./react.html');
+  await expect(page.locator('#react-locale-message')).toHaveText('未読み込み');
+  await expect.poll(() => page.evaluate(() => Boolean(window.__siteKitReactLocaleCatalog))).toBe(true);
+  const startup = [...requested];
+  const i18nVendor = path => /(?:i18next|\/features\/i18n\.mjs)/i.test(path);
+  expect(startup.filter(i18nVendor), 'React must also skip optional translator until requested').toEqual([]);
+  await page.locator('#react-locale-enable').click();
+  await expect(page.locator('#react-locale-message')).toContainText('こんにちは');
+  expect(requested.filter(i18nVendor).length).toBeGreaterThan(0);
+  await testInfo.attach('react-script-network-audit', {
+    body: Buffer.from(JSON.stringify({startup,requestedAfterEnable:requested},null,2)),
+    contentType:'application/json'
+  });
+});
