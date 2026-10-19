@@ -127,6 +127,16 @@ for (const item of pages.links()) {
   button.dataset.page = item.id;
   button.addEventListener('click', () => openSamplePage(item.id), { signal: shortcutEvents.signal });
   pageNav.append(button);
+  // The same enabled page registry controls header, drawer and footer discovery.
+  for (const container of [desktopMenu, document.querySelector('.demo-nav'),
+    document.getElementById('standard-footer-links')]) {
+    const link = document.createElement('a');
+    link.href = '#quick-pages';
+    link.textContent = item.title + '（見本）';
+    link.dataset.standardPage = item.id;
+    link.addEventListener('click', () => openSamplePage(item.id), { signal: shortcutEvents.signal });
+    container.append(link);
+  }
 }
 openSamplePage('help');
 let shortcutFeedback = '';
