@@ -30,3 +30,9 @@ const result:LocalSearchResult[] = local.query('Help',{limit:2});
 void result;
 // @ts-expect-error search document must have source text
 createLocalSearchIndex([{id:'x',title:'Missing text'}]);
+
+import {createHistory,type HistorySnapshot} from '../history.mjs';
+const reversible=createHistory({value:1},{limit:10,onChange(snapshot:HistorySnapshot){void snapshot.canUndo;}});
+reversible.commit({value:2});reversible.undo();reversible.dispose();
+// @ts-expect-error history limit must be a number
+createHistory(0,{limit:'all'});
