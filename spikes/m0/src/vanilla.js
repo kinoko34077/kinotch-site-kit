@@ -167,7 +167,7 @@ function updateLocalSearch() {
     button.append(title,context); // text-only, never innerHTML.
     button.addEventListener('click', () => {
       openSamplePage(item.id);
-      document.getElementById('quick-pages').scrollIntoView({block:'nearest',behavior:'instant'});
+      document.getElementById('quick-pages').scrollIntoView({block:'nearest',behavior:'auto'});
       pageTitle.focus();
     }, {signal:shortcutEvents.signal});
     searchResults.append(button);
