@@ -161,7 +161,10 @@ export function createActionRegistry({ actions, target, storage, storageKey = 's
       if (data?.version === 1 && isPlain(data.bindings)) {
         for (const [id, combo] of Object.entries(data.bindings)) {
           if (!map.has(id) || !(combo === null || typeof combo === 'string')) continue;
-          try { assign(id, combo, false); } catch { /* invalid/stale user settings ignored per action */ }
+          try {
+            const normalized = combo === null ? null : normalizeShortcut(combo);
+            if (!collides(id, normalized)) assigned.set(id, normalized);
+          } catch { /* invalid/stale user settings ignored per action */ }
         }
       }
       storageStatus = 'loaded';
