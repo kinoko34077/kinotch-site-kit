@@ -12,8 +12,9 @@ import { createVanillaNavigationAdapter } from '../../../packages/adapters/vanil
 import { siteInputForPath } from './site-contract.js';
 import { createPageMetadata, applyPageMetadata } from '../../../packages/features/seo.mjs';
 import { createActionRegistry } from '../../../packages/features/actions.mjs';
+import { createFeatureCatalog } from '../../../packages/runtime/catalog.mjs';
 import { searchIndexFromPages } from '../../../packages/features/search.mjs';
-import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
+import { previewPageRegistry, PREVIEW_SHORTCUTS, PREVIEW_LOCALE_RESOURCES } from './feature-demo.js';
 
 const shell = document.getElementById('site-shell');
 const themeButton = document.getElementById('theme');
@@ -216,11 +217,58 @@ document.getElementById('shortcut-reset').addEventListener('click', () => {
 document.getElementById('shortcut-notice').addEventListener('click', () => actions.invoke('demo:notice'), { signal: shortcutEvents.signal });
 document.getElementById('shortcut-help').addEventListener('click', () => actions.invoke('demo:help'), { signal: shortcutEvents.signal });
 
+// Optional locale module is not fetched until the user explicitly enables it.
+const localeCatalog = createFeatureCatalog();
+const localeEnable = document.getElementById('locale-enable');
+const localeSelect = document.getElementById('locale-select');
+const localeMessage = document.getElementById('locale-message');
+const localeSummary = document.getElementById('locale-summary');
+let localeInstance = null;
+let localeLoading = false;
+function renderLocale() {
+  if (!localeInstance) return;
+  localeSelect.value = localeInstance.language;
+  localeMessage.textContent = localeInstance.t('greeting');
+  localeSummary.textContent = localeInstance.t('summary');
+}
+async function onLocaleEnable() {
+  if (localeLoading || localeInstance || state.disposed) return;
+  localeLoading = true;
+  localeEnable.disabled = true;
+  localeMessage.textContent = '多言語機能を読み込み中…';
+  try {
+    const {createLocalization} = await localeCatalog.load('i18n');
+    if (state.disposed) return;
+    const controller = await createLocalization({
+      resources: PREVIEW_LOCALE_RESOURCES, language: 'ja', fallbackLanguage: 'ja'
+    });
+    if (state.disposed) { controller.dispose(); return; }
+    localeInstance = controller;
+    localeSelect.disabled = false;
+    renderLocale();
+  } catch {
+    if (!state.disposed) {
+      localeMessage.textContent = '読込に失敗しました。もう一度実行できます。';
+      localeEnable.disabled = false;
+    }
+  } finally {
+    localeLoading = false;
+  }
+}
+async function onLocaleChange() {
+  if (!localeInstance || state.disposed) return;
+  try { await localeInstance.setLanguage(localeSelect.value); renderLocale(); }
+  catch { localeMessage.textContent = '言語変更に失敗しました。'; }
+}
+localeEnable.addEventListener('click', onLocaleEnable, {signal: shortcutEvents.signal});
+localeSelect.addEventListener('change', onLocaleChange, {signal: shortcutEvents.signal});
+
 function dispose() {
   if (state.disposed) return;
   state.disposed = true;
   recorder.destroy();
   actions.dispose();
+  localeInstance?.dispose();
   shortcutEvents.abort();
   restoreSeo();
   coreController.dispose();
@@ -234,5 +282,5 @@ function dispose() {
   viewObserver.disconnect();
   systemTheme.removeEventListener?.('change', onSystemThemeChange);
 }
-window.__m0 = { state, shell, coreController, actions, pages, localSearch, dispose };
+window.__m0 = { state, shell, coreController, actions, pages, localSearch, localeCatalog, dispose };
 window.addEventListener('pagehide', dispose, { once: true });
