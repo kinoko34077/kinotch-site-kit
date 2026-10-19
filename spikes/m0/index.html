@@ -104,6 +104,14 @@
         </div>
       </div>
     </section>
+    <section id="local-search-section" class="feature-status" aria-labelledby="local-search-title">
+      <h2 id="local-search-title">サイト内検索（公開可能な標準ページの見本）</h2>
+      <p>有効なヘルプ・概要から、端末内で文字を検索します。検索語や入力内容は送信しません。</p>
+      <label for="local-search-query">検索する文字</label>
+      <input id="local-search-query" type="search" autocomplete="off" maxlength="120" placeholder="例：メニュー、テーマ">
+      <output id="local-search-status" class="demo-output" aria-live="polite">キーワードを入力すると結果が表示されます</output>
+      <div id="local-search-results" class="search-results" aria-label="サイト内検索の結果"></div>
+    </section>
     <section class="feature-status" aria-labelledby="core-demo-title">
       <h2 id="core-demo-title">共通Coreのナビゲーション（M1技術試作）</h2>
       <p>ここに表示される2つのリンクは、ページごとの手書きではなく共通サイト設定から生成しています。React版も同じ定義を使用します。</p>
