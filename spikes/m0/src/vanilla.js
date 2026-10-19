@@ -117,7 +117,7 @@ function openSamplePage(id) {
   pageTitle.textContent = page.title;
   pageContent.textContent = page.text; // text-only; no config HTML injection.
   for (const button of pageNav.querySelectorAll('button')) {
-    button.setAttribute('aria-current', button.dataset.page === id ? 'page' : 'false');
+    button.setAttribute('aria-pressed', String(button.dataset.page === id));
   }
 }
 for (const item of pages.links()) {
