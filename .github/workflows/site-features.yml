@@ -1,0 +1,31 @@
+name: Site Kit feature contracts
+
+on:
+  pull_request:
+    paths:
+      - 'packages/features/**'
+      - '.github/workflows/site-features.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/features/**'
+      - '.github/workflows/site-features.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  feature-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Node syntax
+        run: |
+          node --check packages/features/actions.mjs
+          node --check packages/features/pages.mjs
+      - name: Test safe actions and page registry
+        run: node --test packages/features/tests/*.test.mjs
