@@ -36,3 +36,9 @@ const reversible=createHistory({value:1},{limit:10,onChange(snapshot:HistorySnap
 reversible.commit({value:2});reversible.undo();reversible.dispose();
 // @ts-expect-error history limit must be a number
 createHistory(0,{limit:'all'});
+
+import {createLocalization,type Localization} from '../i18n.mjs';
+const locale:Promise<Localization>=createLocalization({resources:{ja:{title:'日本語'},en:{title:'English'}},language:'ja',fallbackLanguage:'ja'});
+void locale;
+// @ts-expect-error locale resources must contain string translations
+createLocalization({resources:{ja:{title:123}}});
