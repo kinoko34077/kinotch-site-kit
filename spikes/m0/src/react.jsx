@@ -7,8 +7,9 @@ import { createReactStateAdapter } from '../../../packages/adapters/react.mjs';
 import { siteInputForPath } from './site-contract.js';
 import { createPageMetadata, applyPageMetadata } from '../../../packages/features/seo.mjs';
 import { createActionRegistry } from '../../../packages/features/actions.mjs';
+import { createFeatureCatalog } from '../../../packages/runtime/catalog.mjs';
 import { searchIndexFromPages } from '../../../packages/features/search.mjs';
-import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
+import { previewPageRegistry, PREVIEW_SHORTCUTS, PREVIEW_LOCALE_RESOURCES } from './feature-demo.js';
 import '@awesome.me/webawesome/dist/styles/webawesome.css';
 import './demo.css';
 import '@awesome.me/webawesome/dist/components/page/page.js';
@@ -30,6 +31,14 @@ function Fixture() {
   const [recorded, setRecorded] = useState('未割当');
   const [standardPage, setStandardPage] = useState('help');
   const [searchText, setSearchText] = useState('');
+  const [localeCatalog] = useState(() => createFeatureCatalog());
+  const localeRef = useRef(null);
+  const localeAlive = useRef(true);
+  const [localeMessage, setLocaleMessage] = useState('未読み込み');
+  const [localeSummary, setLocaleSummary] = useState('');
+  const [localeLanguage, setLocaleLanguage] = useState('ja');
+  const [localeReady, setLocaleReady] = useState(false);
+  const [localeLoading, setLocaleLoading] = useState(false);
   const [shortcuts, setShortcuts] = useState([]);
   const [shortcutInput, setShortcutInput] = useState(PREVIEW_SHORTCUTS.notice);
   const [shortcutMessage, setShortcutMessage] = useState('');
@@ -125,6 +134,49 @@ function Fixture() {
       document.removeEventListener('pointerdown', onOutside);
     };
   }, [desktopMenuOpen]);
+  useEffect(() => {
+    window.__siteKitReactLocaleCatalog = localeCatalog;
+    return () => {
+      localeAlive.current = false;
+      localeRef.current?.dispose();
+      window.__siteKitReactLocaleCatalog = undefined;
+    };
+  }, [localeCatalog]);
+  async function enableLocale() {
+    if (localeLoading || localeReady || !localeAlive.current) return;
+    setLocaleLoading(true);
+    setLocaleMessage('多言語機能を読み込み中…');
+    try {
+      const {createLocalization} = await localeCatalog.load('i18n');
+      if (!localeAlive.current) return;
+      const locale = await createLocalization({
+        resources: PREVIEW_LOCALE_RESOURCES,language:'ja',fallbackLanguage:'ja'
+      });
+      if (!localeAlive.current) {locale.dispose(); return;}
+      localeRef.current = locale;
+      setLocaleReady(true);
+      setLocaleLanguage(locale.language);
+      setLocaleMessage(locale.t('greeting'));
+      setLocaleSummary(locale.t('summary'));
+    } catch {
+      if (localeAlive.current) setLocaleMessage('読込に失敗しました。再試行できます。');
+    } finally {
+      if (localeAlive.current) setLocaleLoading(false);
+    }
+  }
+  async function changeLocale(language) {
+    const locale = localeRef.current;
+    if (!locale) return;
+    try {
+      await locale.setLanguage(language);
+      if (!localeAlive.current) return;
+      setLocaleLanguage(locale.language);
+      setLocaleMessage(locale.t('greeting'));
+      setLocaleSummary(locale.t('summary'));
+    } catch {
+      if (localeAlive.current) setLocaleMessage('言語変更に失敗しました。');
+    }
+  }
   const page = previewPages.renderText(standardPage);
   const noticeShortcut = shortcuts.find(x=>x.id==='demo:notice')?.shortcut ?? '未設定';
   const helpShortcut = shortcuts.find(x=>x.id==='demo:help')?.shortcut ?? '未設定';
@@ -236,6 +288,21 @@ function Fixture() {
             <output id="react-notice-count" className="demo-output" aria-live="polite">通知を実行した回数: {noticeCount}</output>
           </div>
         </div>
+      </section>
+      <section className="feature-status" id="react-lazy-i18n">
+        <h2>多言語機能（必要時のみ読み込み）</h2>
+        <p>i18nextを使うのは「有効化」を押した場合だけです。外部翻訳サービスには接続しません。</p>
+        <div className="controls">
+          <button id="react-locale-enable" type="button" disabled={localeLoading || localeReady}
+            onClick={enableLocale}>多言語を有効化</button>
+          <label htmlFor="react-locale-select">言語</label>
+          <select id="react-locale-select" disabled={!localeReady} value={localeLanguage}
+            onChange={event => changeLocale(event.target.value)}>
+            <option value="ja">日本語</option><option value="en">English</option>
+          </select>
+        </div>
+        <output id="react-locale-message" className="demo-output" aria-live="polite">{localeMessage}</output>
+        <p id="react-locale-summary" className="demo-note">{localeSummary}</p>
       </section>
       <section className="feature-status" id="react-local-search-section">
         <h2>サイト内検索（公開可能な標準ページの見本）</h2>

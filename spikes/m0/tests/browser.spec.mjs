@@ -418,3 +418,34 @@ test('React and Vanilla local search use the same opted-in corpus and keep editi
   await expect(page.locator('#react-text')).toHaveValue('入力内容は維持');
   await expect(page.locator('#react-local-search-results button')).toHaveCount(0);
 });
+
+
+test('Vanilla i18next remains unloaded until selection and changes language in place', async ({page})=>{
+  await page.goto('./');
+  await expect(page.locator('#locale-select')).toBeDisabled();
+  await expect(page.locator('#locale-message')).toHaveText('未読み込み');
+  expect(await page.evaluate(()=>window.__m0.localeCatalog.loaded('i18n'))).toBe(false);
+  await page.locator('#locale-enable').click();
+  await expect(page.locator('#locale-select')).toBeEnabled();
+  await expect(page.locator('#locale-message')).toContainText('こんにちは');
+  expect(await page.evaluate(()=>window.__m0.localeCatalog.loaded('i18n'))).toBe(true);
+  await page.locator('#locale-select').selectOption('en');
+  await expect(page.locator('#locale-message')).toContainText('Hello');
+  await expect(page.locator('#locale-summary')).toHaveText('Only selected modules are loaded.');
+});
+
+test('React i18next loads on demand and does not replace React-owned input state', async ({page})=>{
+  await page.goto('./react.html');
+  await expect(page.locator('#react-locale-select')).toBeDisabled();
+  expect(await page.evaluate(()=>window.__siteKitReactLocaleCatalog.loaded('i18n'))).toBe(false);
+  await page.locator('#react-text').fill('編集中の入力は保持');
+  await page.locator('#react-locale-enable').click();
+  await expect(page.locator('#react-locale-select')).toBeEnabled();
+  await expect(page.locator('#react-locale-message')).toContainText('こんにちは');
+  await page.locator('#react-locale-select').selectOption('en');
+  await expect(page.locator('#react-locale-message')).toContainText('Hello');
+  await expect(page.locator('#react-text')).toHaveValue('編集中の入力は保持');
+  expect(await page.evaluate(()=>window.__siteKitReactLocaleCatalog.loaded('i18n'))).toBe(true);
+  await page.evaluate(()=>window.__m0ReactDispose());
+  await expect(page.locator('#react-host')).toBeEmpty();
+});

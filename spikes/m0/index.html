@@ -104,6 +104,19 @@
         </div>
       </div>
     </section>
+    <section id="lazy-i18n" class="feature-status" aria-labelledby="lazy-i18n-title">
+      <h2 id="lazy-i18n-title">多言語機能（選んだ時だけ読み込み）</h2>
+      <p>i18nextはこの「有効化」を押すまで読み込みません。外部翻訳サービスへの送信や自動保存は行いません。</p>
+      <div class="controls">
+        <button type="button" id="locale-enable">多言語を有効化</button>
+        <label for="locale-select">言語</label>
+        <select id="locale-select" disabled>
+          <option value="ja">日本語</option><option value="en">English</option>
+        </select>
+      </div>
+      <output id="locale-message" class="demo-output" aria-live="polite">未読み込み</output>
+      <p id="locale-summary" class="demo-note"></p>
+    </section>
     <section id="local-search-section" class="feature-status" aria-labelledby="local-search-title">
       <h2 id="local-search-title">サイト内検索（公開可能な標準ページの見本）</h2>
       <p>有効なヘルプ・概要から、端末内で文字を検索します。検索語や入力内容は送信しません。</p>
