@@ -28,6 +28,10 @@
     "./i18n": {
       "types": "./i18n.d.mts",
       "default": "./i18n.mjs"
+    },
+    "./operation": {
+      "types": "./operation.d.mts",
+      "default": "./operation.mjs"
     }
   },
   "devDependencies": {
