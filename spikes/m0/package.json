@@ -14,7 +14,8 @@
     "@tanstack/hotkeys": "0.13.0",
     "@tanstack/react-hotkeys": "0.13.0",
     "react": "19.0.1",
-    "react-dom": "19.0.1"
+    "react-dom": "19.0.1",
+    "i18next": "26.4.2"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "5.0.4",
