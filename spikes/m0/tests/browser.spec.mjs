@@ -361,13 +361,14 @@ test('React uses the same page registry and restores action assignments from Van
 test('SEO metadata derives from same SiteDefinition and route for both hosts', async ({page}) => {
   await page.goto('./');
   await expect(page).toHaveTitle(/Vanilla JS 版 \| KiNoTch. Site Kit Preview/);
+  const prefix = process.env.M0_BASE_URL ? '/kinotch-site-kit/' : '/';
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-    'href','https://kinoko34077.github.io/kinotch-site-kit/');
+    'href','https://kinoko34077.github.io'+prefix);
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content',/公開機能検証/);
   await page.goto('./react.html');
   await expect(page).toHaveTitle(/React 版 \| KiNoTch. Site Kit Preview/);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-    'href','https://kinoko34077.github.io/kinotch-site-kit/react.html');
+    'href','https://kinoko34077.github.io'+prefix+'react.html');
 });
 
 test('custom not-found page explains recovery and cannot be indexed', async ({page}) => {
