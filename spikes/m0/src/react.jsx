@@ -7,6 +7,7 @@ import { createReactStateAdapter } from '../../../packages/adapters/react.mjs';
 import { siteInputForPath } from './site-contract.js';
 import { createPageMetadata, applyPageMetadata } from '../../../packages/features/seo.mjs';
 import { createActionRegistry } from '../../../packages/features/actions.mjs';
+import { searchIndexFromPages } from '../../../packages/features/search.mjs';
 import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
 import '@awesome.me/webawesome/dist/styles/webawesome.css';
 import './demo.css';
@@ -21,12 +22,14 @@ const LABELS = { system: 'システム', light: 'ライト', dark: 'ダーク' }
 const ICONS = { system: '🖥️', light: '☀️', dark: '🌙' };
 const STORAGE_KEY = 'kinotch-site-kit-m0-demo-theme';
 const previewPages = previewPageRegistry();
+const previewSearch = searchIndexFromPages(previewPages);
 
 function Fixture() {
   const [count, setCount] = useState(0);
   const [coreSite, setCoreSite] = useState(null);
   const [recorded, setRecorded] = useState('未割当');
   const [standardPage, setStandardPage] = useState('help');
+  const [searchText, setSearchText] = useState('');
   const [shortcuts, setShortcuts] = useState([]);
   const [shortcutInput, setShortcutInput] = useState(PREVIEW_SHORTCUTS.notice);
   const [shortcutMessage, setShortcutMessage] = useState('');
@@ -234,6 +237,28 @@ function Fixture() {
           </div>
         </div>
       </section>
+      <section className="feature-status" id="react-local-search-section">
+        <h2>サイト内検索（公開可能な標準ページの見本）</h2>
+        <p>有効なヘルプ・概要だけを端末内で検索します。入力内容は送信しません。</p>
+        <label htmlFor="react-local-search-query">検索する文字</label>
+        <input id="react-local-search-query" type="search" maxLength={120} autoComplete="off"
+          placeholder="例：メニュー、テーマ" value={searchText}
+          onChange={event=>setSearchText(event.target.value)}/>
+        <output id="react-local-search-status" className="demo-output" aria-live="polite">
+          {!searchText.trim() ? 'キーワードを入力すると結果が表示されます'
+            : (previewSearch.query(searchText).length ?
+              previewSearch.query(searchText).length + ' 件見つかりました' : '該当するページはありません')}
+        </output>
+        <div id="react-local-search-results" className="search-results" aria-label="サイト内検索の結果">
+          {searchText.trim() && previewSearch.query(searchText).map(item=>
+            <button key={item.id} type="button" data-result-page={item.id} onClick={()=>{
+              setStandardPage(item.id);
+              document.getElementById('react-combo-features')?.scrollIntoView({block:'nearest',behavior:'auto'});
+              document.getElementById('react-page-title')?.focus();
+            }}><strong>{item.title}</strong><small>{item.snippet}</small></button>
+          )}
+        </div>
+      </section>
       <section className="feature-status">
         <h2>共通Coreのナビゲーション（M1技術試作）</h2>
         <p>Vanilla JSと同じサイト設定を、Reactが自分の状態として表示しています。</p>
@@ -250,9 +275,9 @@ function Fixture() {
         <h2>実装状況</h2>
         <div className="status-columns">
           <div><h3>試せる <span className="tag">サンプル</span></h3>
-            <p>PC/スマホメニュー、テーマ切替、パンくず、React状態管理、キー記録、入力の保持。</p></div>
+            <p>PC/スマホメニュー、テーマ切替、パンくず、React状態管理、キーの割当変更、標準ページ、ローカル検索、入力保持。</p></div>
           <div><h3>今後作る <span className="tag pending">未実装</span></h3>
-            <p>ヘルプ／概要の見本と割当変更は試験可能。全サイト対応の正式API、法務内容の確定、検索・多言語・SEOなどは未完了。</p>
+            <p>ヘルプ／概要の見本と割当変更は試験可能。全サイト対応の正式API、法務内容の確定、サイト全体を検索するPagefind、多言語対応、SEOの総合受入は未完了。</p>
             <p><a href="https://github.com/kinoko34077/kinotch-site-kit/issues/10">ロードマップ ↗</a></p></div>
         </div>
       </section>

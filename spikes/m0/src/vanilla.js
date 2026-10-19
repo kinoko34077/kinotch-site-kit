@@ -12,6 +12,7 @@ import { createVanillaNavigationAdapter } from '../../../packages/adapters/vanil
 import { siteInputForPath } from './site-contract.js';
 import { createPageMetadata, applyPageMetadata } from '../../../packages/features/seo.mjs';
 import { createActionRegistry } from '../../../packages/features/actions.mjs';
+import { searchIndexFromPages } from '../../../packages/features/search.mjs';
 import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
 
 const shell = document.getElementById('site-shell');
@@ -144,6 +145,36 @@ for (const item of pages.links()) {
   }
 }
 openSamplePage('help');
+
+const localSearch = searchIndexFromPages(pages);
+const searchInput = document.getElementById('local-search-query');
+const searchStatus = document.getElementById('local-search-status');
+const searchResults = document.getElementById('local-search-results');
+function updateLocalSearch() {
+  searchResults.replaceChildren();
+  const q = searchInput.value;
+  if (!q.trim()) { searchStatus.textContent = 'キーワードを入力すると結果が表示されます'; return; }
+  const results = localSearch.query(q);
+  searchStatus.textContent = results.length ? results.length + ' 件見つかりました' : '該当するページはありません';
+  for (const item of results) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.resultPage = item.id;
+    const title = document.createElement('strong');
+    title.textContent = item.title;
+    const context = document.createElement('small');
+    context.textContent = item.snippet;
+    button.append(title,context); // text-only, never innerHTML.
+    button.addEventListener('click', () => {
+      openSamplePage(item.id);
+      document.getElementById('quick-pages').scrollIntoView({block:'nearest',behavior:'auto'});
+      pageTitle.focus();
+    }, {signal:shortcutEvents.signal});
+    searchResults.append(button);
+  }
+}
+searchInput.addEventListener('input',updateLocalSearch,{signal:shortcutEvents.signal});
+
 let shortcutFeedback = '';
 const actions = createActionRegistry({
   target: document,
@@ -203,5 +234,5 @@ function dispose() {
   viewObserver.disconnect();
   systemTheme.removeEventListener?.('change', onSystemThemeChange);
 }
-window.__m0 = { state, shell, coreController, actions, pages, dispose };
+window.__m0 = { state, shell, coreController, actions, pages, localSearch, dispose };
 window.addEventListener('pagehide', dispose, { once: true });

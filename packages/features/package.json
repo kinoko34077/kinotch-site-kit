@@ -16,6 +16,10 @@
     "./seo": {
       "types": "./seo.d.mts",
       "default": "./seo.mjs"
+    },
+    "./search": {
+      "types": "./search.d.mts",
+      "default": "./search.mjs"
     }
   },
   "devDependencies": {
