@@ -9,7 +9,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         vanilla: resolve(import.meta.dirname, 'index.html'),
-        react: resolve(import.meta.dirname, 'react.html')
+        react: resolve(import.meta.dirname, 'react.html'),
+        notFound: resolve(import.meta.dirname, '404.html')
       }
     }
   }
