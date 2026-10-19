@@ -284,6 +284,10 @@ test('React desktop menu and icon cycle remain functional after state updates', 
 test('composed Vanilla actions: pointer/keyboard, rebind, conflict and input-safe guard', async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('#std-page-nav button')).toHaveCount(2); // No invented legal policy.
+  await expect(page.locator('#desktop-menu [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('.demo-nav [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('#standard-footer-links [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('[data-standard-page="privacy"]')).toHaveCount(0);
   await expect(page.locator('#std-page-nav [data-page="privacy"]')).toHaveCount(0);
   await expect(page.locator('#shortcut-status')).toContainText('Alt+Shift+K');
   await page.locator('#shortcut-notice').click();
@@ -330,6 +334,9 @@ test('React uses the same page registry and restores action assignments from Van
   await expect(page.locator('#shortcut-status')).toContainText('Alt+Shift+J');
   await page.goto('./react.html');
   await expect(page.locator('#react-std-page-nav button')).toHaveCount(2);
+  await expect(page.locator('#react-desktop-menu [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('#react-shell nav[slot="navigation"] [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('#react-shell footer [data-standard-page]')).toHaveCount(2);
   await expect(page.locator('#react-std-page-nav [data-page="privacy"]')).toHaveCount(0);
   await expect(page.locator('#react-shortcut-status')).toContainText('Alt+Shift+J');
   await page.locator('#react-shortcut-notice').click();
