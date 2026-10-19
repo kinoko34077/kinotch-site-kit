@@ -15,3 +15,11 @@ export const PREVIEW_SHORTCUTS = Object.freeze({
   notice: 'Alt+Shift+K',
   help: 'Alt+Shift+H'
 });
+
+/** Bundled test-only dictionaries; not a network translation service. */
+export const PREVIEW_LOCALE_RESOURCES = Object.freeze({
+  ja: Object.freeze({ greeting: 'こんにちは。共通UIの多言語表示を試験しています。',
+    summary: '選択した機能だけを読み込みます。' }),
+  en: Object.freeze({ greeting: 'Hello. This is an optional Site Kit localization test.',
+    summary: 'Only selected modules are loaded.' })
+});
