@@ -94,7 +94,7 @@ test('persistence is explicitly opt-in, survives reload and degrades when storag
   const two=createActionRegistry({target,actions:descriptors(),storage,storageKey:'site-test',onChange:()=>changed++});
   assert.equal(two.get('nav:help'),'Alt+Shift+N');
   assert.equal(two.storageStatus,'loaded');
-  assert.ok(changed>=2);
+  assert.equal(changed, 1); // Initial restore is silent; host reads list() after mount.
   two.dispose();
   const failing={getItem(){throw Error('private browsing');},setItem(){throw Error('quota');}};
   const third=createActionRegistry({target,actions:descriptors(),storage:failing});
