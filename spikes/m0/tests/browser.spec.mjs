@@ -437,6 +437,9 @@ test('Vanilla i18next remains unloaded until selection and changes language in p
 test('React i18next loads on demand and does not replace React-owned input state', async ({page})=>{
   await page.goto('./react.html');
   await expect(page.locator('#react-locale-select')).toBeDisabled();
+  // React passive effects are asynchronous, especially in WebKit after page.goto.
+  // Wait for the host to register its catalog before checking its unloaded state.
+  await expect.poll(() => page.evaluate(() => Boolean(window.__siteKitReactLocaleCatalog))).toBe(true);
   expect(await page.evaluate(()=>window.__siteKitReactLocaleCatalog.loaded('i18n'))).toBe(false);
   await page.locator('#react-text').fill('編集中の入力は保持');
   await page.locator('#react-locale-enable').click();
