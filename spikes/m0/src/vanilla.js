@@ -1,5 +1,7 @@
 // M0 demonstration only — site shell/vendor evaluation, not reusable Site Kit API.
-import '@awesome.me/webawesome/dist/styles/webawesome.css';
+// Web Awesome's documented required theme; full webawesome.css also imports
+// native reset + utility classes we do not use in this preview.
+import '@awesome.me/webawesome/dist/styles/themes/default.css';
 import './demo.css';
 import '@awesome.me/webawesome/dist/components/page/page.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';

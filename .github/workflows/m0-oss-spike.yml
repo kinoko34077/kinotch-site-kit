@@ -45,3 +45,10 @@ jobs:
           test -s dist/react.html
           test -s dist/404.html
           test -n "$(find dist/assets -maxdepth 1 -name '*.js' -print -quit)"
+      - name: Measure emitted asset cost against previous CSS baseline
+        run: node scripts/audit-build-size.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m0-oss-build-size
+          path: spikes/m0/artifacts/m0-build-size.json
+          retention-days: 14
