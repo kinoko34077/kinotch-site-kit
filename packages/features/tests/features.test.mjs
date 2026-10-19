@@ -119,9 +119,11 @@ test('pages are disabled by default and only enabled authored content appears in
 });
 
 test('legal page requires authored text and exposes review warning; default missing kind rejected', () => {
-  const p=createPageRegistry([{id:'privacy',kind:'privacy',title:'プライバシー',enabled:true,content:'Site owner reviewed text'}]);
+  const p=createPageRegistry([{id:'privacy',kind:'privacy',title:'プライバシー',enabled:true,reviewed:true,content:'Site owner reviewed text'}]);
   assert.equal(p.links().length,1);
   assert.match(p.renderText('privacy').legalNotice,/verify legal/);
+  assert.equal(createPageRegistry([{id:'privacy',kind:'privacy',title:'P',enabled:true,content:'Draft only'}]).links().length,0);
+  assert.equal(createPageRegistry([{id:'privacy',kind:'privacy',title:'P',enabled:true,reviewed:true,content:'Reviewed'}]).links().length,1);
   for(const list of [
     [{id:'bad',kind:'privacy',title:'P',enabled:true,content:13}],
     [{id:'bad',kind:'payment',title:'P',enabled:true,content:'wrong'}],
