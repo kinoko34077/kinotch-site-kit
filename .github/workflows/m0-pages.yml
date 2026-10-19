@@ -107,3 +107,11 @@ jobs:
           npx playwright install chromium webkit --with-deps
       - name: Verify real live interactions in Chromium and desktop WebKit
         run: npm run test:e2e
+      - name: Retain cold-route waterfall and test attachments
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m0-live-browser-network-evidence
+          path: spikes/m0/test-results/**
+          if-no-files-found: warn
+          retention-days: 14
