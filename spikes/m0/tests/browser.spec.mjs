@@ -279,3 +279,80 @@ test('React desktop menu and icon cycle remain functional after state updates', 
   await page.reload();
   await expect(page.locator('#react-theme-icon')).toHaveText('☀️');
 });
+
+
+test('composed Vanilla actions: pointer/keyboard, rebind, conflict and input-safe guard', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('#std-page-nav button')).toHaveCount(2); // No invented legal policy.
+  await expect(page.locator('#desktop-menu [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('.demo-nav [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('#standard-footer-links [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('[data-standard-page="privacy"]')).toHaveCount(0);
+  await expect(page.locator('#std-page-nav [data-page="privacy"]')).toHaveCount(0);
+  await expect(page.locator('#shortcut-status')).toContainText('Alt+Shift+K');
+  await page.locator('#shortcut-notice').click();
+  await expect(page.locator('#notice-count')).toContainText('1 回');
+  await page.keyboard.press('Alt+Shift+K');
+  await expect(page.locator('#notice-count')).toContainText('2 回');
+  await page.locator('#shortcut-input').fill('Alt+Shift+H');
+  await page.locator('#shortcut-apply').click();
+  await expect(page.locator('#shortcut-status')).toContainText('conflict');
+  await expect.poll(() => page.evaluate(() => window.__m0.actions.get('demo:notice'))).toBe('Alt+Shift+K');
+  await page.locator('#shortcut-input').fill('Alt+Shift+J');
+  await page.locator('#shortcut-apply').click();
+  await expect(page.locator('#shortcut-status')).toContainText('Alt+Shift+J');
+  await page.locator('#editor').fill('日本語を入力中');
+  await page.locator('#editor').press('Alt+Shift+J');
+  await expect(page.locator('#notice-count')).toContainText('2 回');
+  await page.locator('#shortcut-reset').click();
+  await expect(page.locator('#shortcut-status')).toContainText('Alt+Shift+K');
+  await page.locator('#shortcut-clear').click();
+  await expect(page.locator('#shortcut-status')).toContainText('解除');
+  await expect.poll(() => page.evaluate(() => window.__m0.actions.get('demo:notice'))).toBe(null);
+  await page.locator('#shortcut-reset').click();
+  await expect.poll(() => page.evaluate(() => window.__m0.actions.get('demo:notice'))).toBe('Alt+Shift+K');
+});
+
+test('composed standard pages: only enabled authored content and shared keyboard help', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('#std-page-title')).toHaveText('ヘルプ');
+  await page.locator('#std-page-nav [data-page="about"]').click();
+  await expect(page.locator('#std-page-title')).toHaveText('このサイトについて');
+  await page.locator('#shortcut-help').click();
+  await expect(page.locator('#std-page-title')).toHaveText('ヘルプ');
+  await page.locator('#std-page-nav [data-page="about"]').click();
+  await page.keyboard.press('Alt+Shift+H');
+  await expect(page.locator('#std-page-title')).toHaveText('ヘルプ');
+  await expect(page.locator('#std-page-title')).toBeFocused();
+  await expect.poll(() => page.evaluate(() => window.__m0.pages.visible('privacy'))).toBe(false);
+});
+
+test('React uses the same page registry and restores action assignments from Vanilla storage', async ({ page }) => {
+  await page.goto('./');
+  await page.locator('#shortcut-input').fill('Alt+Shift+J');
+  await page.locator('#shortcut-apply').click();
+  await expect(page.locator('#shortcut-status')).toContainText('Alt+Shift+J');
+  await page.goto('./react.html');
+  await expect(page.locator('#react-std-page-nav button')).toHaveCount(2);
+  await expect(page.locator('#react-desktop-menu [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('#react-shell nav[slot="navigation"] [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('#react-shell footer [data-standard-page]')).toHaveCount(2);
+  await expect(page.locator('#react-std-page-nav [data-page="privacy"]')).toHaveCount(0);
+  await expect(page.locator('#react-shortcut-status')).toContainText('Alt+Shift+J');
+  await page.locator('#react-shortcut-notice').click();
+  await expect(page.locator('#react-notice-count')).toContainText('1');
+  await page.keyboard.press('Alt+Shift+J');
+  await expect(page.locator('#react-notice-count')).toContainText('2');
+  await page.locator('#react-std-page-nav [data-page="about"]').click();
+  await expect(page.locator('#react-page-title')).toHaveText('このサイトについて');
+  await page.locator('#react-shortcut-help').click();
+  await expect(page.locator('#react-page-title')).toHaveText('ヘルプ');
+  await page.locator('#react-shortcut-reset').click();
+  await expect(page.locator('#react-shortcut-status')).toContainText('Alt+Shift+K');
+  await page.locator('#react-text').fill('変更前の入力');
+  await page.locator('#react-text').press('Alt+Shift+K');
+  await expect(page.locator('#react-notice-count')).toContainText('2');
+  await expect(page.locator('#react-text')).toHaveValue('変更前の入力');
+  await page.evaluate(() => window.__m0ReactDispose());
+  await expect(page.locator('#react-host')).toBeEmpty();
+});

@@ -1,0 +1,24 @@
+{
+  "name": "@kinotch/site-kit-features",
+  "version": "0.0.0-experimental",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./actions": {
+      "types": "./actions.d.mts",
+      "default": "./actions.mjs"
+    },
+    "./pages": {
+      "types": "./pages.d.mts",
+      "default": "./pages.mjs"
+    }
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:types": "tsc --project tsconfig.json"
+  }
+}

@@ -5,6 +5,8 @@ import { useHotkeyRecorder } from '@tanstack/react-hotkeys';
 import { createSiteController, navigation, breadcrumbs } from '../../../packages/core/index.mjs';
 import { createReactStateAdapter } from '../../../packages/adapters/react.mjs';
 import { siteInputForPath } from './site-contract.js';
+import { createActionRegistry } from '../../../packages/features/actions.mjs';
+import { previewPageRegistry, PREVIEW_SHORTCUTS } from './feature-demo.js';
 import '@awesome.me/webawesome/dist/styles/webawesome.css';
 import './demo.css';
 import '@awesome.me/webawesome/dist/components/page/page.js';
@@ -17,11 +19,18 @@ const MODES = ['system', 'light', 'dark'];
 const LABELS = { system: 'システム', light: 'ライト', dark: 'ダーク' };
 const ICONS = { system: '🖥️', light: '☀️', dark: '🌙' };
 const STORAGE_KEY = 'kinotch-site-kit-m0-demo-theme';
+const previewPages = previewPageRegistry();
 
 function Fixture() {
   const [count, setCount] = useState(0);
   const [coreSite, setCoreSite] = useState(null);
   const [recorded, setRecorded] = useState('未割当');
+  const [standardPage, setStandardPage] = useState('help');
+  const [shortcuts, setShortcuts] = useState([]);
+  const [shortcutInput, setShortcutInput] = useState(PREVIEW_SHORTCUTS.notice);
+  const [shortcutMessage, setShortcutMessage] = useState('');
+  const [noticeCount, setNoticeCount] = useState(0);
+  const actionsRef = useRef(null);
   const [mode, setMode] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -49,6 +58,28 @@ function Fixture() {
     return () => {
       controller.dispose();
       window.__m0ReactCore = undefined;
+    };
+  }, []);
+  useEffect(() => {
+    const registry = createActionRegistry({
+      target: document,
+      storage: (() => {try {return localStorage;} catch {return undefined;}})(),
+      storageKey: 'kinotch-site-kit-demo-shortcuts-v1',
+      actions: [
+        {id:'demo:notice',title:'通知を表示',defaultShortcut:PREVIEW_SHORTCUTS.notice,
+          run:() => setNoticeCount(n=>n+1)},
+        {id:'demo:help',title:'ヘルプを表示',defaultShortcut:PREVIEW_SHORTCUTS.help,
+          run:() => {setStandardPage('help'); document.getElementById('react-page-title')?.focus();}}
+      ],
+      onChange: list => setShortcuts(list)
+    });
+    actionsRef.current = registry;
+    setShortcuts(registry.list());
+    window.__siteKitReactActions = registry;
+    return () => {
+      registry.dispose();
+      actionsRef.current = null;
+      window.__siteKitReactActions = undefined;
     };
   }, []);
   useEffect(() => {
@@ -85,6 +116,16 @@ function Fixture() {
       document.removeEventListener('pointerdown', onOutside);
     };
   }, [desktopMenuOpen]);
+  const page = previewPages.renderText(standardPage);
+  const noticeShortcut = shortcuts.find(x=>x.id==='demo:notice')?.shortcut ?? '未設定';
+  const helpShortcut = shortcuts.find(x=>x.id==='demo:help')?.shortcut ?? '未設定';
+  const changeBinding = () => {
+    try {
+      const normalized = actionsRef.current.bind('demo:notice', shortcutInput);
+      setShortcutInput(normalized);
+      setShortcutMessage('');
+    } catch (error) { setShortcutMessage(error?.message ?? '登録に失敗しました'); }
+  };
   return <wa-page id="react-shell" mobile-breakpoint="760">
     <header slot="header" className="demo-header">
       <span className="brand">KiNoTch. / Site Kit <span className="tag">React 検証版</span></span>
@@ -103,6 +144,8 @@ function Fixture() {
         <a href="./react.html" aria-current="page" onClick={() => setDesktopMenuOpen(false)}>React 版</a>
         <a href="#react-detail" onClick={() => setDesktopMenuOpen(false)}>操作を試す</a>
         <a href="#react-status" onClick={() => setDesktopMenuOpen(false)}>実装状況</a>
+        {previewPages.links().map(item=><a href="#react-combo-features" key={item.id} data-standard-page={item.id}
+          onClick={()=>{setStandardPage(item.id);setDesktopMenuOpen(false);}}>{item.title}（見本）</a>)}
       </nav>
     </header>
     <nav slot="navigation" className="demo-nav" aria-label="検証ページ一覧">
@@ -110,6 +153,8 @@ function Fixture() {
       <a href="./react.html" aria-current="page">React 版</a>
       <a href="#react-detail">操作を試す</a>
       <a href="#react-status">実装状況</a>
+      {previewPages.links().map(item=><a href="#react-combo-features" key={item.id} data-standard-page={item.id}
+        onClick={()=>setStandardPage(item.id)}>{item.title}（見本）</a>)}
       <a href="https://github.com/kinoko34077/kinotch-site-kit/issues/20">改善Issue ↗</a>
     </nav>
     <main id="main" className="demo-main">
@@ -144,6 +189,45 @@ function Fixture() {
           <input id="react-text" defaultValue="unchanged"/>
         </section>
       </div>
+      <section className="feature-status" id="react-combo-features">
+        <h2>標準ページとショートカットを組み合わせる</h2>
+        <div className="demo-grid">
+          <div className="demo-card">
+            <h2>標準ページ</h2>
+            <nav id="react-std-page-nav" className="controls" aria-label="利用可能な標準ページ">
+              {previewPages.links().map(item=><button type="button" data-page={item.id} key={item.id}
+                aria-pressed={standardPage === item.id} onClick={()=>setStandardPage(item.id)}>{item.title}</button>)}
+            </nav>
+            <h3 id="react-page-title" tabIndex={-1}>{page.title}</h3>
+            <p id="react-page-content" className="demo-note">{page.text}</p>
+            <p className="demo-note">プライバシー・利用規約は実内容と承認がないため公開されません。</p>
+          </div>
+          <div className="demo-card">
+            <h2>キー割当と実行</h2>
+            <div className="controls">
+              <button id="react-shortcut-notice" type="button" onClick={()=>actionsRef.current?.invoke('demo:notice')}>通知を実行</button>
+              <button id="react-shortcut-help" type="button" onClick={()=>actionsRef.current?.invoke('demo:help')}>ヘルプを開く</button>
+            </div>
+            <label htmlFor="react-shortcut-input">通知を出すキーの組合せ</label>
+            <input id="react-shortcut-input" value={shortcutInput} onChange={e=>setShortcutInput(e.target.value)}/>
+            <div className="controls">
+              <button id="react-shortcut-apply" type="button" onClick={changeBinding}>変更</button>
+              <button id="react-shortcut-clear" type="button" onClick={()=>{
+                actionsRef.current?.unbind('demo:notice');
+                setShortcutMessage('通知のキー割当を解除しました');
+              }}>解除</button>
+              <button id="react-shortcut-reset" type="button" onClick={()=>{
+                actionsRef.current?.reset('demo:notice');
+                setShortcutInput(PREVIEW_SHORTCUTS.notice);setShortcutMessage('');
+              }}>元に戻す</button>
+            </div>
+            <output id="react-shortcut-status" className="demo-output" aria-live="polite">
+              {shortcutMessage || ('通知: '+noticeShortcut+' / ヘルプ: '+helpShortcut)}
+            </output>
+            <output id="react-notice-count" className="demo-output" aria-live="polite">通知を実行した回数: {noticeCount}</output>
+          </div>
+        </div>
+      </section>
       <section className="feature-status">
         <h2>共通Coreのナビゲーション（M1技術試作）</h2>
         <p>Vanilla JSと同じサイト設定を、Reactが自分の状態として表示しています。</p>
@@ -162,7 +246,7 @@ function Fixture() {
           <div><h3>試せる <span className="tag">サンプル</span></h3>
             <p>PC/スマホメニュー、テーマ切替、パンくず、React状態管理、キー記録、入力の保持。</p></div>
           <div><h3>今後作る <span className="tag pending">未実装</span></h3>
-            <p>共通Coreの正式なAPI・配布形式、自由なホットキー割当、サイト別設定、標準ページ・検索・多言語・SEOはまだ未完了。</p>
+            <p>ヘルプ／概要の見本と割当変更は試験可能。全サイト対応の正式API、法務内容の確定、検索・多言語・SEOなどは未完了。</p>
             <p><a href="https://github.com/kinoko34077/kinotch-site-kit/issues/10">ロードマップ ↗</a></p></div>
         </div>
       </section>
@@ -170,6 +254,8 @@ function Fixture() {
     </main>
     <footer slot="footer" className="demo-footer">
       KiNoTch. Site Kit / React M0 Preview <a href="./">Vanilla版</a>
+      {previewPages.links().map(item=><a key={item.id} data-standard-page={item.id} href="#react-combo-features"
+        onClick={()=>setStandardPage(item.id)}>{item.title}（見本）</a>)}
       <a href="https://github.com/kinoko34077/kinotch-site-kit">GitHub</a>
     </footer>
   </wa-page>;

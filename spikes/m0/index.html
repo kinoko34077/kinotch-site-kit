@@ -78,6 +78,32 @@
         <p><a href="./react.html">React 検証ページへ →</a></p>
       </article>
     </section>
+    <section id="combo-features" class="feature-status" aria-labelledby="combo-title">
+      <h2 id="combo-title">機能を組み合わせる：標準ページとショートカット</h2>
+      <p>ヘルプを開く操作を、ボタン・メニュー・キーボードから実行できます。割当を変更しても入力中の文字は守られます。</p>
+      <div class="demo-grid">
+        <div class="demo-card" id="quick-pages">
+          <h2>標準ページを開く</h2>
+          <nav id="std-page-nav" class="controls" aria-label="利用可能な標準ページ"></nav>
+          <h3 id="std-page-title" tabindex="-1">ヘルプ</h3>
+          <p id="std-page-content" class="demo-note"></p>
+          <p class="demo-note" id="std-legal-note">プライバシー・利用規約は実内容と承認がないため公開されません。</p>
+        </div>
+        <div class="demo-card">
+          <h2>ショートカットを設定</h2>
+          <p><button id="shortcut-notice" type="button">通知を実行</button> <button id="shortcut-help" type="button">ヘルプを開く</button></p>
+          <label for="shortcut-input">通知を出すキーの組合せ</label>
+          <input id="shortcut-input" value="Alt+Shift+K" autocomplete="off" spellcheck="false">
+          <div class="controls">
+            <button id="shortcut-apply" type="button">変更</button>
+            <button id="shortcut-clear" type="button">解除</button>
+            <button id="shortcut-reset" type="button">元に戻す</button>
+          </div>
+          <output id="shortcut-status" class="demo-output" aria-live="polite">キー割当の状態</output>
+          <p class="demo-note">例：Alt+Shift+J。入力欄で押したキーはアクションに奪われません。</p>
+        </div>
+      </div>
+    </section>
     <section class="feature-status" aria-labelledby="core-demo-title">
       <h2 id="core-demo-title">共通Coreのナビゲーション（M1技術試作）</h2>
       <p>ここに表示される2つのリンクは、ページごとの手書きではなく共通サイト設定から生成しています。React版も同じ定義を使用します。</p>
@@ -92,7 +118,7 @@
         </div>
         <div>
           <h3>これから作る <span class="tag pending">未実装</span></h3>
-          <p>共通CoreはM1試作段階。製品としてのAPI安定化、メニュー・配色のサイト別設定、ショートカット割当変更・競合解決、ヘルプ・法務ページ、検索・多言語・SEO等は未完了。</p>
+          <p>共通CoreはM1試作段階。製品としてのAPI安定化、メニュー・配色のサイト別設定、割当変更・競合検出とヘルプのサンプルを追加済み。全サイト対応のショートカット設定、正式な法務ページ、検索・多言語・SEO等は引き続き未完了。</p>
           <p><a href="https://github.com/kinoko34077/kinotch-site-kit/issues/10">ロードマップを見る ↗</a></p>
         </div>
       </div>
@@ -102,6 +128,7 @@
   <footer slot="footer" class="demo-footer">
     KiNoTch. Site Kit / M0 Preview
     <a href="./react.html">React版</a>
+    <span id="standard-footer-links"></span>
     <a href="https://github.com/kinoko34077/kinotch-site-kit">GitHub</a>
   </footer>
 </wa-page>
