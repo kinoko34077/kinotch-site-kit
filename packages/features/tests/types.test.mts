@@ -42,3 +42,9 @@ const locale:Promise<Localization>=createLocalization({resources:{ja:{title:'日
 void locale;
 // @ts-expect-error locale resources must contain string translations
 createLocalization({resources:{ja:{title:123}}});
+
+import {createOperationTracker,type OperationSnapshot} from '../operation.mjs';
+const status=createOperationTracker({onChange(snapshot:OperationSnapshot){void snapshot.dirty;}});
+status.markDirty();const ticket=status.beginSave();if(ticket)status.acknowledgeSaved(ticket);status.dispose();
+// @ts-expect-error onChange must be function
+createOperationTracker({onChange:'save'});
