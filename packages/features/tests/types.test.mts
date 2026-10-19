@@ -14,3 +14,12 @@ createPageRegistry([{id:'help',kind:'help',title:'Help',html:'<b>unsafe</b>'}]);
 // @ts-expect-error action callbacks must be functions
 const invalidAction: ActionDefinition = {id:'bad',title:'bad',run:'alert'};
 void invalidAction;
+
+import {createPageMetadata, createSitemapXml, type PageMetadata} from '../seo.mjs';
+import {createSiteDefinition} from '../../core/index.mjs';
+const site = createSiteDefinition({id:'demo',name:'Demo',routes:[{id:'home',path:'/',title:'Home'}]});
+const metadata: PageMetadata = createPageMetadata(site,{origin:'https://example.com',routeId:'home'});
+const sitemap: string = createSitemapXml(site,{origin:'https://example.com'});
+void metadata; void sitemap;
+// @ts-expect-error route identifier is mandatory
+createPageMetadata(site,{origin:'https://example.com'});
