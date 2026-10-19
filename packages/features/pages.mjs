@@ -11,7 +11,7 @@ export function createPageRegistry(input = []) {
   for (const entry of input) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry) ||
         Object.getPrototypeOf(entry) !== Object.prototype) throw new TypeError('invalid page config');
-    for (const key of Object.keys(entry)) if (!['id','kind','title','content','enabled'].includes(key)) {
+    for (const key of Object.keys(entry)) if (!['id','kind','title','content','enabled','reviewed'].includes(key)) {
       throw new TypeError('unknown page attribute: ' + key);
     }
     const id = entry.id;
@@ -20,11 +20,12 @@ export function createPageRegistry(input = []) {
     if (typeof entry.title !== 'string' || !entry.title.trim()) throw new TypeError('page title required');
     if (entry.enabled !== undefined && typeof entry.enabled !== 'boolean') throw new TypeError('enabled must be boolean');
     if (entry.content !== undefined && typeof entry.content !== 'string') throw new TypeError('content must be text');
+    if (entry.reviewed !== undefined && typeof entry.reviewed !== 'boolean') throw new TypeError('reviewed must be boolean');
     const enabled = entry.enabled === true;
     const content = entry.content?.trim() ?? '';
-    const ready = enabled && content.length > 0;
+    const ready = enabled && content.length > 0 && (!LEGAL.has(entry.kind) || entry.reviewed === true);
     records.set(id, Object.freeze({ id,kind:entry.kind,title:entry.title.trim(),content,
-      enabled,ready,requiresReview:LEGAL.has(entry.kind) }));
+      enabled,ready,requiresReview:LEGAL.has(entry.kind),reviewed:entry.reviewed === true }));
   }
   const api = Object.freeze({
     all() { return [...records.values()]; },
