@@ -42,3 +42,13 @@ jobs:
           name: site-kit-optional-bundle-size
           path: packages/runtime/artifacts/bundle-report.json
           retention-days: 14
+      - name: Prove standalone pinned static ESM distribution
+        run: node packages/runtime/scripts/build-static-kit.mjs
+      - name: Preserve unreleased static manifest and fingerprinted ESM
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-kit-static-esm-proof
+          path: packages/runtime/artifacts/static-kit/**
+          retention-days: 14
+          if-no-files-found: error
+
