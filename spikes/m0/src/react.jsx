@@ -10,7 +10,9 @@ import { createActionRegistry } from '../../../packages/features/actions.mjs';
 import { createFeatureCatalog } from '../../../packages/runtime/catalog.mjs';
 import { searchIndexFromPages } from '../../../packages/features/search.mjs';
 import { previewPageRegistry, PREVIEW_SHORTCUTS, PREVIEW_LOCALE_RESOURCES } from './feature-demo.js';
-import '@awesome.me/webawesome/dist/styles/webawesome.css';
+// Web Awesome's documented required theme; full webawesome.css also imports
+// native reset + utility classes we do not use in this preview.
+import '@awesome.me/webawesome/dist/styles/themes/default.css';
 import './demo.css';
 import '@awesome.me/webawesome/dist/components/page/page.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';
