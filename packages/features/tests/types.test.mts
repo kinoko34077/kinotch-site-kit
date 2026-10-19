@@ -23,3 +23,10 @@ const sitemap: string = createSitemapXml(site,{origin:'https://example.com'});
 void metadata; void sitemap;
 // @ts-expect-error route identifier is mandatory
 createPageMetadata(site,{origin:'https://example.com'});
+
+import {createLocalSearchIndex, searchIndexFromPages, type LocalSearchResult} from '../search.mjs';
+const local=createLocalSearchIndex([{id:'help',title:'Help',text:'Example'}],{maxResults:5});
+const result:LocalSearchResult[] = local.query('Help',{limit:2});
+void result;
+// @ts-expect-error search document must have source text
+createLocalSearchIndex([{id:'x',title:'Missing text'}]);
