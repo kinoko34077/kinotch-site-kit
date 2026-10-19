@@ -144,6 +144,8 @@ function Fixture() {
         <a href="./react.html" aria-current="page" onClick={() => setDesktopMenuOpen(false)}>React 版</a>
         <a href="#react-detail" onClick={() => setDesktopMenuOpen(false)}>操作を試す</a>
         <a href="#react-status" onClick={() => setDesktopMenuOpen(false)}>実装状況</a>
+        {previewPages.links().map(item=><a href="#react-combo-features" key={item.id} data-standard-page={item.id}
+          onClick={()=>{setStandardPage(item.id);setDesktopMenuOpen(false);}}>{item.title}（見本）</a>)}
       </nav>
     </header>
     <nav slot="navigation" className="demo-nav" aria-label="検証ページ一覧">
@@ -151,6 +153,8 @@ function Fixture() {
       <a href="./react.html" aria-current="page">React 版</a>
       <a href="#react-detail">操作を試す</a>
       <a href="#react-status">実装状況</a>
+      {previewPages.links().map(item=><a href="#react-combo-features" key={item.id} data-standard-page={item.id}
+        onClick={()=>setStandardPage(item.id)}>{item.title}（見本）</a>)}
       <a href="https://github.com/kinoko34077/kinotch-site-kit/issues/20">改善Issue ↗</a>
     </nav>
     <main id="main" className="demo-main">
@@ -250,6 +254,8 @@ function Fixture() {
     </main>
     <footer slot="footer" className="demo-footer">
       KiNoTch. Site Kit / React M0 Preview <a href="./">Vanilla版</a>
+      {previewPages.links().map(item=><a key={item.id} data-standard-page={item.id} href="#react-combo-features"
+        onClick={()=>setStandardPage(item.id)}>{item.title}（見本）</a>)}
       <a href="https://github.com/kinoko34077/kinotch-site-kit">GitHub</a>
     </footer>
   </wa-page>;
