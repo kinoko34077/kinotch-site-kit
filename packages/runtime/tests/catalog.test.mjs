@@ -43,7 +43,7 @@ test('failed feature loads can be retried without interfering with other modules
 });
 test('unknown IDs fail atomically before any loader work',async()=>{
   let calls=0;
-  const c=createFeatureCatalog({loaders:{known:()=>{calls++;return {};}}});
+  const c=createFeatureCatalog({loaders:{known:()=>{calls++;return null;}}});
   assert.throws(()=>c.load('missing'),RangeError);
   assert.throws(()=>c.loadSelected(['known','missing']),RangeError);
   assert.equal(calls,0);
