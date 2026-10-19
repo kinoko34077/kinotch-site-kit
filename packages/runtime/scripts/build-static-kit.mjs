@@ -56,8 +56,10 @@ for(const [path,meta] of Object.entries(result.metafile.outputs)){
   if(meta.entryPoint){
     const original=resolve(here,meta.entryPoint);
     const key=Object.keys(entries).find(name=>entries[name]===original);
-    if(!key)throw new Error('Unexpected entry source: '+original);
-    entryMap[key]=relativePath;
+    // esbuild also marks dynamically imported dependencies (e.g. bundled
+    // i18next) as entry points in its metafile. Include their assets in the
+    // immutable manifest without exposing them as consumer-selected APIs.
+    if(key)entryMap[key]=relativePath;
   }
 }
 files.sort((a,b)=>a.path.localeCompare(b.path));
