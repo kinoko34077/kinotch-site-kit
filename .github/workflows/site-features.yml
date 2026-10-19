@@ -29,3 +29,7 @@ jobs:
           node --check packages/features/pages.mjs
       - name: Test safe actions and page registry
         run: node --test packages/features/tests/*.test.mjs
+      - name: Install pinned TypeScript compiler (test-only)
+        run: npm install --prefix packages/features --no-package-lock --no-audit --no-fund
+      - name: Verify exported TypeScript contracts
+        run: npm run --prefix packages/features test:types
