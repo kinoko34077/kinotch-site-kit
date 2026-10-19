@@ -5,6 +5,7 @@
 - `seo.mjs` — route-aware canonical/title/description/robots metadata, sitemap XML generation from enabled route registry, optional reversible document-head adapter. Requires an explicit validated HTTPS origin; never invents site URLs or analytics.
 - `search.mjs` — opt-in, offline-only small-site page search. NFKC/case-insensitive substring lookup, multiword intersection and safe text snippets. `searchIndexFromPages` indexes only enabled and owner-reviewed pages; does not index unapproved legal drafts. This is NOT Pagefind or complete site-wide static HTML indexing.
 - `i18n.mjs` — **opt-in i18next 26.4.2** loader; explicit self-hosted locale dictionaries, isolated instance, serial language switching, Intl date/number formatting, language direction and cleanup. i18next isn't imported until `createLocalization()` is requested; no automatic network, locale detection, Locize, browser storage or global singleton.
+- `operation.mjs` — host-confirmed save status machine (idle/dirty/saving/saved/failed), explicit save tickets, no fake success, concurrent write guard, dirty edits during save remain unsaved, clear error/retry; no automatic data persistence or remotely irreversible action.
 - All modules use no browser frameworks or services and can be combined with `packages/core` via an explicit host adapter. No auto analytics/cookies/network calls; settings are stored only if the host supplies storage.
 
 Native tests: `node --test packages/features/tests/*.test.mjs`
