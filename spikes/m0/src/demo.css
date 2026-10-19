@@ -81,3 +81,10 @@ wa-page[view="desktop"] #toggle-nav { display: none; }
 .tag.pending { background: var(--demo-bg); color: var(--demo-muted); }
 .core-links { display: flex; flex-wrap: wrap; gap: .65rem; }
 .core-links a { display: inline-block; padding: .35rem .6rem; border-radius: 9px; background: var(--demo-accent-soft); }
+
+/* Local search is optional and never invents whole-site indexing. */
+#local-search-query, #react-local-search-query { width: min(100%, 30rem); padding: .65rem .8rem; margin: .5rem 0; border: 1px solid var(--demo-border); background: var(--demo-bg); color: var(--demo-text); border-radius: .6rem; font: inherit; }
+.search-results { display: grid; gap: .5rem; padding: .6rem 0; }
+.search-results button { display: block; width: 100%; text-align: left; border: 1px solid var(--demo-border); background: var(--demo-bg); color: var(--demo-text); padding: .65rem .85rem; border-radius: .65rem; font: inherit; cursor: pointer; }
+.search-results button:hover { background: var(--demo-accent-soft); }
+.search-results small { display: block; color: var(--demo-muted); font-size: .83rem; white-space: normal; overflow-wrap: anywhere; }
