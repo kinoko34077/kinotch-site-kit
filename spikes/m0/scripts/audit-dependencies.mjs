@@ -40,6 +40,19 @@ for (const [location, metadata] of Object.entries(lock.packages)) {
   records.push({ name: declaredName, version, location, license, state, installed: !!installed });
 }
 records.sort((a, b) => a.location.localeCompare(b.location));
+
+// Keep the adapter's exactly required TanStack core as one physical module.
+// A second copy might create distinct hotkey managers/listener bookkeeping.
+const coreHotkeys=records.filter(x=>x.name==='@tanstack/hotkeys'&&x.installed);
+if(coreHotkeys.length!==1||coreHotkeys[0].version!=='0.11.0'||
+  coreHotkeys[0].location!=='node_modules/@tanstack/hotkeys'){
+  throw new Error('Expected one hoisted @tanstack/hotkeys@0.11.0; observed: '+
+    JSON.stringify(coreHotkeys.map(x=>({path:x.location,version:x.version}))));
+}
+console.log('TANSTACK_HOTKEYS_SINGLE_CORE',JSON.stringify({
+  coreVersion:coreHotkeys[0].version,installedCopies:coreHotkeys.length,
+  reactAdapter:'0.13.0'
+}));
 const count = status => records.filter(x => x.state === status).length;
 const data = {
   kind: 'm0-inventory-not-license-approval',
