@@ -33,11 +33,15 @@ jobs:
       - name: Native isolated import and history tests
         run: node --test packages/runtime/tests/*.test.mjs packages/features/tests/history.test.mjs
       - name: Install build/test tools only (esbuild and TypeScript)
-        run: npm install --prefix packages/runtime --no-audit --no-fund --no-package-lock
+        run: npm install --prefix packages/runtime --no-audit --no-fund
+      - name: Verify runtime candidate lock with frozen npm ci
+        run: npm ci --prefix packages/runtime --no-audit --no-fund
       - name: Typecheck catalog contract
         run: npm run --prefix packages/runtime test:types
       - name: Install opt-in peer in owning feature package for bundle-only PoC
-        run: npm install --prefix packages/features --no-package-lock --no-audit --no-fund
+        run: npm install --prefix packages/features --no-audit --no-fund
+      - name: Verify optional feature candidate lock with frozen npm ci
+        run: npm ci --prefix packages/features --no-audit --no-fund
       - name: Quantify genuinely lazy ESM code chunks
         run: npm run --prefix packages/runtime audit:bundle
       - name: Keep bounded code-size evidence
@@ -49,9 +53,21 @@ jobs:
       - name: Prove standalone pinned static ESM distribution
         run: node packages/runtime/scripts/build-static-kit.mjs
       - name: Install independent static-host browser test runner
-        run: npm install --prefix spikes/m0 --no-package-lock --no-audit --no-fund
+        run: npm install --prefix spikes/m0 --no-audit --no-fund
+      - name: Verify independent static-host candidate lock with frozen npm ci
+        run: npm ci --prefix spikes/m0 --no-audit --no-fund
       - name: Record installed license metadata without claiming license acceptance
         run: node packages/runtime/scripts/audit-dependency-metadata.mjs
+      - name: Archive candidate transitive locks for source-controlled pinning review
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-kit-transitive-lock-candidates
+          path: |
+            packages/runtime/package-lock.json
+            packages/features/package-lock.json
+            spikes/m0/package-lock.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Archive transitive dependency/notice filename findings
         uses: actions/upload-artifact@v4
         with:
