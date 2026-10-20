@@ -14,7 +14,7 @@ test('no-bundler static consumer loads hashed Core/Vanilla and optional UI only 
   expect(Object.keys(manifest.types)).toHaveLength(11);
   expect(Object.keys(manifest.types).sort()).toEqual(Object.keys(manifest.entries).sort());
   for (const file of Object.values(manifest.types)) {
-    expect(file).toMatch(/\\.d\\.ts$/);
+    expect(file.endsWith('.d.ts')).toBe(true);
     expect(manifest.files.some(item=>item.path===file)).toBe(true);
   }
   expect(manifest.files.filter(f=>f.kind==='types')).toHaveLength(11);
