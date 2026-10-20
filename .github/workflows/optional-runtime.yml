@@ -50,6 +50,15 @@ jobs:
         run: node packages/runtime/scripts/build-static-kit.mjs
       - name: Install independent static-host browser test runner
         run: npm install --prefix spikes/m0 --no-package-lock --no-audit --no-fund
+      - name: Record installed license metadata without claiming license acceptance
+        run: node packages/runtime/scripts/audit-dependency-metadata.mjs
+      - name: Archive transitive dependency/notice filename findings
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-kit-dependency-license-evidence
+          path: packages/runtime/artifacts/dependency-license-report.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Prepare Chromium and WebKit for real static HTML
         run: cd spikes/m0 && npx playwright install chromium webkit --with-deps
       - name: Browser-test emitted static artifact with no Vite/React/runtime CDN
