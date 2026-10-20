@@ -23,4 +23,12 @@ The example does **not** automatically validate artifact integrity against a tru
 
 Smoke contracts run in Node against **built ESM output**, including core config, bounded history, verified save state and optional i18next activation. Runtime catalog's seven optional features remain behind dynamic imports; consumers do not have to import the runtime at all for just the core. No CSS is bundled here; site-owned theme styling and the separately evaluated Web Awesome theme remain a distinct optional asset/package.
 
-**Scope still OPEN:** stable versioned npm package, .d.mts declaration relocation/import path rewrite, CSS/icon licenses/attribution, standalone browser HTML served by a real non-React build system, SSR/hydration, physical iPhone/IME and an authorized site migration. See Issue #8, #9 and #10.
+## Independent no-framework browser consumer acceptance slice
+
+CI now generates the static ESM artifact and serves a **separate plain HTML file** at `/probe/` using a minimal local Node HTTP server (`scripts/serve-static-fixture.mjs`). The fixture is not built or transformed by Vite, React or a site-specific bundler. The page fetches its same-origin immutable manifest and imports only hashed `core` and `vanilla-adapter` entrypoints at startup. The `history` feature loads after a pointer action, and the `runtime` + `i18n` adapter/vendor after a different explicit pointer action.
+
+`spikes/m0/playwright.static.config.mjs` runs the fixture in **Chromium + desktop WebKit** and verifies root-relative `/probe/` links, semantic navigation, detached lifecycle, no cross-origin requests, no initial i18next fetch, subsequent translation, and genuine HTTP 404 for unknown paths. This is explicitly independent of the main demo's Vite-hosted public Pages tests. For a standalone run, build the artifact with the two local package dev-install steps above, run `npm install --prefix spikes/m0`, then `cd spikes/m0 && npx playwright test --config playwright.static.config.mjs` (Playwright engines must be installed).
+
+Do not confuse this with actual full production static site admission: no CSS asset packaging, browser-facing declaration bundle, signed manifest, physical mobile Safari, static client pre/post hydration, or consumer-owned version pin/rollback has yet been accepted. It proves a narrowly-scoped **browser-native**, local, version-scoped, opt-in ESM adoption route.
+
+**Scope still OPEN:** stable versioned npm package, .d.mts declaration relocation/import path rewrite, CSS/icon licenses/attribution, physical consumer deployment and SSR/hydration, physical iPhone/IME and an authorized site migration. See Issue #8, #9 and #10.

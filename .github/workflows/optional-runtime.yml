@@ -5,12 +5,16 @@ on:
     paths:
       - 'packages/runtime/**'
       - 'packages/features/**'
+      - 'spikes/m0/static-tests/**'
+      - 'spikes/m0/playwright.static.config.mjs'
       - '.github/workflows/optional-runtime.yml'
   push:
     branches: [main]
     paths:
       - 'packages/runtime/**'
       - 'packages/features/**'
+      - 'spikes/m0/static-tests/**'
+      - 'spikes/m0/playwright.static.config.mjs'
       - '.github/workflows/optional-runtime.yml'
   workflow_dispatch:
 
@@ -20,7 +24,7 @@ permissions:
 jobs:
   optional-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,6 +48,20 @@ jobs:
           retention-days: 14
       - name: Prove standalone pinned static ESM distribution
         run: node packages/runtime/scripts/build-static-kit.mjs
+      - name: Install independent static-host browser test runner
+        run: npm install --prefix spikes/m0 --no-package-lock --no-audit --no-fund
+      - name: Prepare Chromium and WebKit for real static HTML
+        run: cd spikes/m0 && npx playwright install chromium webkit --with-deps
+      - name: Browser-test emitted static artifact with no Vite/React/runtime CDN
+        run: cd spikes/m0 && npx playwright test --config playwright.static.config.mjs
+      - name: Keep independent-browser request and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-kit-independent-static-browser
+          path: spikes/m0/test-results/**
+          retention-days: 14
+          if-no-files-found: warn
       - name: Preserve unreleased static manifest and fingerprinted ESM
         uses: actions/upload-artifact@v4
         with:
