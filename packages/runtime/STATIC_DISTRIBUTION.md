@@ -2,7 +2,7 @@
 
 Run `npm install --prefix packages/runtime` and `npm install --prefix packages/features`, then `node packages/runtime/scripts/build-static-kit.mjs`. The read-only CI uses exact pinned versions in those dev dependencies, without publishing or deploying a package.
 
-Output: `packages/runtime/artifacts/static-kit/manifest.json` with named, **content-hashed** ESM entries, sha256 checksums and raw/gzip/Brotli sizes; each emitted JS file is included in the ephemeral 14-day GitHub Actions artifact. Every named entry and vendor dependency must resolve inside the self-hosted artifact, with no bare module imports or third-party network.
+Output: `packages/runtime/artifacts/static-kit/manifest.json` with named, **content-hashed** ESM entries, co-located `.d.ts` declarations for the 11 named entries, `manifest.types` lookup, sha256 checksums and raw/gzip/Brotli sizes; each emitted JS file is included in the ephemeral 14-day GitHub Actions artifact. Every named entry and vendor dependency must resolve inside the self-hosted artifact, with no bare module imports or third-party network.
 
 A static host may copy **the entire manifest and all emitted files** into its own immutable, versioned asset directory and select an entry explicitly. This is a consumer-owned *future integration procedure*, not a change deployed to any existing consumer:
 
@@ -29,6 +29,12 @@ CI now generates the static ESM artifact and serves a **separate plain HTML file
 
 `spikes/m0/playwright.static.config.mjs` runs the fixture in **Chromium + desktop WebKit** and verifies root-relative `/probe/` links, semantic navigation, detached lifecycle, no cross-origin requests, no initial i18next fetch, subsequent translation, and genuine HTTP 404 for unknown paths. This is explicitly independent of the main demo's Vite-hosted public Pages tests. For a standalone run, build the artifact with the two local package dev-install steps above, run `npm install --prefix spikes/m0`, then `cd spikes/m0 && npx playwright test --config playwright.static.config.mjs` (Playwright engines must be installed).
 
-Do not confuse this with actual full production static site admission: no CSS asset packaging, browser-facing declaration bundle, signed manifest, physical mobile Safari, static client pre/post hydration, or consumer-owned version pin/rollback has yet been accepted. It proves a narrowly-scoped **browser-native**, local, version-scoped, opt-in ESM adoption route.
+Do not confuse this with actual full production static site admission: no CSS asset packaging, independently signed manifest, physical mobile Safari, static client pre/post hydration, or consumer-owned version pin/rollback has yet been accepted. It proves a narrowly-scoped **browser-native**, local, version-scoped, opt-in ESM adoption route.
 
 **Scope still OPEN:** stable versioned npm package, .d.mts declaration relocation/import path rewrite, CSS/icon licenses/attribution, physical consumer deployment and SSR/hydration, physical iPhone/IME and an authorized site migration. See Issue #8, #9 and #10.
+
+## Typed consumer proof (experimental)
+
+The build now copies source `.d.mts` into sibling `.d.ts` files named for each hashed JavaScript entry, writes an artifact-local `package.json` with `type: module`, and rewrites relative Core type imports to the *actual* emitted Core filename. The manifest exposes `types` for 11 named entries; declarations do **not** require runtime React, Vite, or dynamic HTTP requests. The same build runs strict TypeScript 5.9.3 NodeNext compilation of a **new external consumer probe** that imports compiled Core, Vanilla/React adapters, SEO, history, operation, and i18n; expected-invalid type cases must be rejected.
+
+Browser startup cost is still governed by emitted JavaScript modules, not the declaration files. The type filenames follow their paired JS entry for TypeScript resolution; per-file SHA-256 in the manifest identifies exact declaration content. To prevent stale type caches, pin and copy the **complete artifact by version**, not cherry-pick individual files. Do not treat this experimental proof as stable semantic-versioned npm publication or proof of browser support for every type consumer.
