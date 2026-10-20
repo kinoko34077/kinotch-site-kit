@@ -27,6 +27,8 @@ jobs:
         run: |
           npm ls --depth=0
           node -e "for(const x of ['@awesome.me/webawesome','@tanstack/hotkeys','@tanstack/react-hotkeys']) {const p=require('./node_modules/'+x+'/package.json');console.log(p.name,p.version,p.license);}"
+      - name: Detect nested or duplicated TanStack Hotkeys core
+        run: npm ls @tanstack/hotkeys --all
       - name: Inventory transitive versions/licenses (not legal approval)
         run: node scripts/audit-dependencies.mjs
       - uses: actions/upload-artifact@v4
