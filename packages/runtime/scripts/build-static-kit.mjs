@@ -4,6 +4,7 @@
  * Build uses pinned, local dev-only esbuild and bundled optional i18next dependency.
  */
 import {build} from 'esbuild';
+import {collectBundledNotices} from './bundled-notices.mjs';
 import {readFile,writeFile,mkdir,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
@@ -108,6 +109,14 @@ files.push({
   moduleInputs:0,kind:'metadata'
 });
 
+// Include real installed legal texts for dependencies present in the shipped JS graph.
+const thirdParty=await collectBundledNotices({
+  metafile:result.metafile,workingDirectory:here,outputDirectory:out
+});
+files.push({path:thirdParty.file,sha256:thirdParty.sha256,bytes:thirdParty.bytes,
+  gzip:gzipSync(await readFile(join(out,thirdParty.file)),{level:9}).length,
+  brotli:brotliCompressSync(await readFile(join(out,thirdParty.file))).length,
+  moduleInputs:0,kind:'legal-notices'});
 files.sort((a,b)=>a.path.localeCompare(b.path));
 for(const key of Object.keys(entries))if(!entryMap[key])throw new Error('Missing static entry: '+key);
 const entryMeta=Object.entries(result.metafile.outputs).find(([,meta])=>
@@ -130,8 +139,9 @@ const manifest={
   loadPolicy:'Consumer explicitly imports the named content-hashed entry; optional entries do not execute automatically',
   entries:entryMap,
   types:typeEntries,
+  thirdPartyNotices:thirdParty,
   files,
-  note:'Hashes are content fingerprints, not audit of license notices, accessibility, field speed, or signed provenance'
+  note:'Actual bundled npm license text is preserved and fingerprinted, but license compatibility, CSS/icons, accessibility, field speed and signed provenance are NOT accepted'
 };
 await writeFile(join(out,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 // Compile against the *emitted* JS URLs, not repository source types.
@@ -195,5 +205,6 @@ console.log('SITE_KIT_STATIC_DISTRIBUTION',JSON.stringify({
   combinedGzip:files.reduce((n,x)=>n+x.gzip,0),
   coreGzip:files.find(f=>f.path===entryMap.core).gzip,
   manifest:'packages/runtime/artifacts/static-kit/manifest.json',
-  smoke:'core/history/operation/catalog/i18next PASS'
+  smoke:'core/history/operation/catalog/i18next PASS',
+  thirdPartyPackages:thirdParty.packages.map(x=>x.name+'@'+x.version)
 }));
