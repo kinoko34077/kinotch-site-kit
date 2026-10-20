@@ -6,6 +6,7 @@
 import {build} from 'esbuild';
 import {readFile,writeFile,mkdir,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import {resolve,relative,join} from 'node:path';
 import {gzipSync,brotliCompressSync} from 'node:zlib';
 import {fileURLToPath,pathToFileURL} from 'node:url';
@@ -62,6 +63,51 @@ for(const [path,meta] of Object.entries(result.metafile.outputs)){
     if(key)entryMap[key]=relativePath;
   }
 }
+// Emit optional declaration files beside every hashed ESM output. These files
+// are never fetched by the browser: they exist for independent TS consumers.
+const declarations={
+  core:resolve(root,'core/index.d.mts'),
+  runtime:resolve(root,'runtime/catalog.d.mts'),
+  'vanilla-adapter':resolve(root,'adapters/vanilla.d.mts'),
+  'react-adapter':resolve(root,'adapters/react.d.mts'),
+  actions:resolve(root,'features/actions.d.mts'),
+  pages:resolve(root,'features/pages.d.mts'),
+  search:resolve(root,'features/search.d.mts'),
+  seo:resolve(root,'features/seo.d.mts'),
+  history:resolve(root,'features/history.d.mts'),
+  operation:resolve(root,'features/operation.d.mts'),
+  i18n:resolve(root,'features/i18n.d.mts')
+};
+const typeEntries={};
+await writeFile(join(out,'package.json'),JSON.stringify({
+  name:'@kinotch/site-kit-static-proof',version:'0.0.0-experimental',
+  type:'module',private:true,sideEffects:false
+},null,2)+'\n');
+for(const [key,source] of Object.entries(declarations)){
+  const path=entryMap[key].replace(/\.js$/,'.d.ts');
+  if(path===entryMap[key])throw new Error('Invalid JS output path for typed entry: '+key);
+  let body=await readFile(source,'utf8');
+  // The development-only type source path does not exist in the static build.
+  body=body.replaceAll(/from (['"])\.\.\/core\/index\.mjs\1/g,
+    "from './"+entryMap.core+"'");
+  if(/from ['"]\.\.\//.test(body))throw new Error('Unresolved declaration dependency: '+key);
+  await writeFile(join(out,path),body);
+  typeEntries[key]=path;
+  const bytes=Buffer.from(body);
+  files.push({
+    path,sha256:createHash('sha256').update(bytes).digest('hex'),
+    bytes:bytes.length,gzip:gzipSync(bytes,{level:9}).length,
+    brotli:brotliCompressSync(bytes).length,
+    moduleInputs:0,kind:'types'
+  });
+}
+const pkgBytes=await readFile(join(out,'package.json'));
+files.push({
+  path:'package.json',sha256:createHash('sha256').update(pkgBytes).digest('hex'),
+  bytes:pkgBytes.length,gzip:gzipSync(pkgBytes).length,brotli:brotliCompressSync(pkgBytes).length,
+  moduleInputs:0,kind:'metadata'
+});
+
 files.sort((a,b)=>a.path.localeCompare(b.path));
 for(const key of Object.keys(entries))if(!entryMap[key])throw new Error('Missing static entry: '+key);
 const entryMeta=Object.entries(result.metafile.outputs).find(([,meta])=>
@@ -83,10 +129,44 @@ const manifest={
   target:'ES2022 ESM self-hosted',
   loadPolicy:'Consumer explicitly imports the named content-hashed entry; optional entries do not execute automatically',
   entries:entryMap,
+  types:typeEntries,
   files,
   note:'Hashes are content fingerprints, not audit of license notices, accessibility, field speed, or signed provenance'
 };
 await writeFile(join(out,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+// Compile against the *emitted* JS URLs, not repository source types.
+const probe=join(here,'artifacts','static-type-consumer.mts');
+await writeFile(probe,[
+  "import {createSiteDefinition, type SiteDefinition} from './static-kit/"+entryMap.core+"';",
+  "import {createVanillaNavigationAdapter} from './static-kit/"+entryMap['vanilla-adapter']+"';",
+  "import {createReactStateAdapter} from './static-kit/"+entryMap['react-adapter']+"';",
+  "import {createPageMetadata} from './static-kit/"+entryMap.seo+"';",
+  "import {createHistory} from './static-kit/"+entryMap.history+"';",
+  "import {createLocalization} from './static-kit/"+entryMap.i18n+"';",
+  "import {createOperationTracker} from './static-kit/"+entryMap.operation+"';",
+  'const site:SiteDefinition=createSiteDefinition({id:"example",name:"Example",routes:[{id:"home",path:"/",title:"Home"}]});',
+  'createVanillaNavigationAdapter({currentRouteId:"home"}).mount(document.createElement("div"),site).dispose();',
+  'createReactStateAdapter(v=>{void v.name;}).mount({},site).dispose();',
+  'createPageMetadata(site,{origin:"https://example.com",routeId:"home"});',
+  'const h=createHistory(0);h.commit(1);h.undo();h.dispose();',
+  'const state=createOperationTracker();state.markDirty();const ticket=state.beginSave();if(ticket)state.acknowledgeSaved(ticket);',
+  'createLocalization({resources:{ja:{title:"Title"}},language:"ja"});',
+  '// @ts-expect-error site id must be a string',
+  'createSiteDefinition({id:1,name:"Invalid"});',
+  '// @ts-expect-error locale resources must contain only strings',
+  'createLocalization({resources:{ja:{title:42}}});'
+].join('\n')+'\n');
+execFileSync(process.execPath,[
+  resolve(here,'node_modules/typescript/bin/tsc'), '--noEmit','--strict',
+  '--module','NodeNext','--moduleResolution','NodeNext',
+  '--target','ES2022','--lib','ES2022,DOM',probe
+],{cwd:here,stdio:'inherit'});
+console.log('SITE_KIT_STATIC_TYPES',JSON.stringify({
+  entries:Object.keys(typeEntries).length,
+  consumer:'TypeScript NodeNext compiled generated hashed ESM import paths',
+  result:'PASS'
+}));
+
 const load=async key=>import(pathToFileURL(join(out,entryMap[key])).href);
 const core=await load('core');
 const definition=core.createSiteDefinition({id:'test',name:'Test',routes:[{id:'home',path:'/',title:'Home'}]});
@@ -110,6 +190,7 @@ locale.dispose();
 console.log('SITE_KIT_STATIC_DISTRIBUTION',JSON.stringify({
   entries:Object.keys(entryMap).length,
   files:files.length,
+  declarations:Object.keys(typeEntries).length,
   runtimeGzip:runtimeInfo.gzip,
   combinedGzip:files.reduce((n,x)=>n+x.gzip,0),
   coreGzip:files.find(f=>f.path===entryMap.core).gzip,
