@@ -10,7 +10,14 @@ test('no-bundler static consumer loads hashed Core/Vanilla and optional UI only 
   const manifest=await page.evaluate(()=>window.__staticFixture.manifest);
   expect(manifest.isRelease).toBe(false);
   expect(Object.keys(manifest.entries)).toHaveLength(11);
-  expect(manifest.files).toHaveLength(13);
+  expect(manifest.files.filter(f=>f.path.endsWith('.js'))).toHaveLength(13);
+  expect(Object.keys(manifest.types)).toHaveLength(11);
+  expect(Object.keys(manifest.types).sort()).toEqual(Object.keys(manifest.entries).sort());
+  for (const file of Object.values(manifest.types)) {
+    expect(file).toMatch(/\\.d\\.ts$/);
+    expect(manifest.files.some(item=>item.path===file)).toBe(true);
+  }
+  expect(manifest.files.filter(f=>f.kind==='types')).toHaveLength(11);
   expect(manifest.files.every(f=>/^[0-9a-f]{64}$/.test(f.sha256))).toBe(true);
   await expect(page.locator('#navigation nav a')).toHaveCount(2);
   await expect(page.locator('#navigation nav a[aria-current="page"]')).toHaveText('ホーム');
