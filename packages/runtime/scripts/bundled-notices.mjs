@@ -19,7 +19,9 @@ async function nearestInstalledPackage(inputPath, workingDirectory) {
   const source=sourcePath(inputPath);
   if(!/(?:^|\/)node_modules\//.test(source))return null;
   let folder=dirname(resolve(workingDirectory,inputPath));
-  const boundary=resolve(workingDirectory);
+  // A feature module may resolve a peer from a sibling package's node_modules.
+  // Restrict inspection to this repository, not just the runtime subdirectory.
+  const boundary=resolve(workingDirectory,'../..');
   while(within(boundary,folder)){
     try {
       const data=JSON.parse(await readFile(join(folder,'package.json'),'utf8'));

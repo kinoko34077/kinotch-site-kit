@@ -52,3 +52,22 @@ test('own-code-only bundles do not invent third-party attribution',async()=>{
     assert.match(await readFile(join(fixture.out,r.file),'utf8'),/Scope: only npm package sources/);
   }finally{await rm(fixture.root,{recursive:true,force:true});}
 });
+
+test('finds a peer bundled from a sibling features/node_modules directory',async()=>{
+  const fixture=await setup();
+  try {
+    const runtime=join(fixture.root,'packages','runtime');
+    const source=join(fixture.root,'packages','features','node_modules','example-lib');
+    await mkdir(runtime,{recursive:true});await mkdir(source,{recursive:true});
+    await writeFile(join(source,'package.json'),JSON.stringify({name:'example-lib',version:'1.2.3',license:'MIT'}));
+    await writeFile(join(source,'LICENSE'),'MIT attribution from features scope\n');
+    const r=await collectBundledNotices({
+      metafile:{outputs:{'dist/bundle.js':{inputs:{
+        '../features/node_modules/example-lib/index.js':{}
+      }}}},
+      workingDirectory:runtime,outputDirectory:fixture.out
+    });
+    assert.deepEqual(r.packages.map(x=>x.name),['example-lib']);
+    assert.match(await readFile(join(fixture.out,r.file),'utf8'),/features scope/);
+  }finally{await rm(fixture.root,{recursive:true,force:true});}
+});
