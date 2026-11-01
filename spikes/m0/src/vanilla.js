@@ -25,7 +25,7 @@ const desktopMenu = document.getElementById('desktop-menu');
 const menuStatus = document.getElementById('menu-status');
 const recordButton = document.getElementById('record');
 const result = document.getElementById('recorded');
-const notification = document.getElementById('notices');
+const notificationSlot = document.getElementById('notices-slot');
 const noticeButton = document.getElementById('notify');
 const themeStatus = document.getElementById('theme-status');
 const noticeStatus = document.getElementById('notice-count');
@@ -34,6 +34,7 @@ const modes = ['system', 'light', 'dark'];
 const labels = { system: 'システム', light: 'ライト', dark: 'ダーク' };
 const icons = { system: '🖥️', light: '☀️', dark: '🌙' };
 let toastLoad = null;
+let notification = null;
 let restored = 'system';
 try {
   const saved = localStorage.getItem(storageKey);
@@ -65,12 +66,19 @@ function ensureToast() {
   }
   return toastLoad;
 }
+function mountToast() {
+  if (state.disposed || notification) return notification;
+  notification = document.createElement('wa-toast');
+  notification.id = 'notices';
+  notificationSlot.append(notification);
+  return notification;
+}
 async function onNotify() {
   const count = ++state.notices;
   noticeStatus.textContent = count + ' 回通知しました';
   try {
     await ensureToast();
-    if (!state.disposed) notification.create('動作確認: 通知 ' + count);
+    mountToast()?.create('動作確認: 通知 ' + count);
   } catch {
     if (!state.disposed) noticeStatus.textContent = '通知機能の読み込みに失敗しました';
   }
@@ -295,6 +303,9 @@ function dispose() {
   document.removeEventListener('keydown', onDesktopKey);
   viewObserver.disconnect();
   systemTheme.removeEventListener?.('change', onSystemThemeChange);
+  notification?.remove();
+  notification = null;
 }
 window.__m0 = { state, shell, coreController, actions, pages, localSearch, localeCatalog, dispose };
 window.addEventListener('pagehide', dispose, { once: true });
+
