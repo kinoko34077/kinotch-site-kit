@@ -18,7 +18,6 @@ import '@awesome.me/webawesome/dist/components/page/page.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/breadcrumb/breadcrumb.js';
 import '@awesome.me/webawesome/dist/components/breadcrumb-item/breadcrumb-item.js';
-import '@awesome.me/webawesome/dist/components/toast/toast.js';
 
 const MODES = ['system', 'light', 'dark'];
 const LABELS = { system: 'システム', light: 'ライト', dark: 'ダーク' };

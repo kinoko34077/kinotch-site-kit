@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('vanilla: Core Web Components are registered, theme and hotkey recorder work', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('./');
-  await page.evaluate(async () => Promise.all(['wa-page','wa-breadcrumb','wa-breadcrumb-item','wa-toast'].map(tag => customElements.whenDefined(tag))));
+  await page.evaluate(async () => Promise.all(['wa-page','wa-breadcrumb','wa-breadcrumb-item'].map(tag => customElements.whenDefined(tag))));
   await expect(page.locator('wa-page')).toBeVisible();
   await expect(page.locator('#site-shell')).toHaveAttribute('view', 'mobile');
   await page.locator('#toggle-nav').click();
@@ -148,8 +148,8 @@ test('preview loads without unexpected third-party assets or telemetry calls', a
     if (requestOrigin !== pageOrigin) unexpected.push({ type: request.resourceType(), url: request.url() });
   });
   await page.goto('./');
-  await page.evaluate(async () => customElements.whenDefined('wa-toast'));
   await page.locator('#notify').click();
+  await expect(page.locator('wa-toast-item')).toHaveCount(1);
   await page.locator('#theme').click();
   expect(unexpected).toEqual([]);
 });
@@ -477,6 +477,14 @@ test('performance: Vanilla startup does not request React page or optional i18ne
     body: Buffer.from(JSON.stringify({startup,requestedAfterEnable:requested,optionalAfterClick:afterSelection},null,2)),
     contentType:'application/json'
   });
+});
+
+test('performance: toast registration waits for an explicit Vanilla notification action', async ({page}) => {
+  await page.goto('./');
+  expect(await page.evaluate(() => Boolean(customElements.get('wa-toast')))).toBe(false);
+  await page.locator('#notify').click();
+  await expect(page.locator('wa-toast-item')).toHaveCount(1);
+  expect(await page.evaluate(() => Boolean(customElements.get('wa-toast')))).toBe(true);
 });
 
 test('performance: React startup also leaves optional i18next unrequested', async ({page},testInfo) => {
