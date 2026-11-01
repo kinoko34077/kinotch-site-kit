@@ -7,7 +7,6 @@ import '@awesome.me/webawesome/dist/components/page/page.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/breadcrumb/breadcrumb.js';
 import '@awesome.me/webawesome/dist/components/breadcrumb-item/breadcrumb-item.js';
-import '@awesome.me/webawesome/dist/components/toast/toast.js';
 import { HotkeyRecorder } from '@tanstack/hotkeys';
 import { createSiteController } from '../../../packages/core/index.mjs';
 import { createVanillaNavigationAdapter } from '../../../packages/adapters/vanilla.mjs';
@@ -26,7 +25,7 @@ const desktopMenu = document.getElementById('desktop-menu');
 const menuStatus = document.getElementById('menu-status');
 const recordButton = document.getElementById('record');
 const result = document.getElementById('recorded');
-const notification = document.getElementById('notices');
+const notificationSlot = document.getElementById('notices-slot');
 const noticeButton = document.getElementById('notify');
 const themeStatus = document.getElementById('theme-status');
 const noticeStatus = document.getElementById('notice-count');
@@ -34,6 +33,8 @@ const storageKey = 'kinotch-site-kit-m0-demo-theme';
 const modes = ['system', 'light', 'dark'];
 const labels = { system: 'システム', light: 'ライト', dark: 'ダーク' };
 const icons = { system: '🖥️', light: '☀️', dark: '🌙' };
+let toastLoad = null;
+let notification = null;
 let restored = 'system';
 try {
   const saved = localStorage.getItem(storageKey);
@@ -58,10 +59,29 @@ function onTheme() {
   applyTheme();
   try { localStorage.setItem(storageKey, state.theme); } catch { /* storage optional */ }
 }
-function onNotify() {
-  state.notices += 1;
-  notification.create('動作確認: 通知 ' + state.notices);
-  noticeStatus.textContent = state.notices + ' 回通知しました';
+function ensureToast() {
+  if (!toastLoad) {
+    toastLoad = import('@awesome.me/webawesome/dist/components/toast/toast.js')
+      .catch(error => { toastLoad = null; throw error; });
+  }
+  return toastLoad;
+}
+function mountToast() {
+  if (state.disposed || notification) return notification;
+  notification = document.createElement('wa-toast');
+  notification.id = 'notices';
+  notificationSlot.append(notification);
+  return notification;
+}
+async function onNotify() {
+  const count = ++state.notices;
+  noticeStatus.textContent = count + ' 回通知しました';
+  try {
+    await ensureToast();
+    mountToast()?.create('動作確認: 通知 ' + count);
+  } catch {
+    if (!state.disposed) noticeStatus.textContent = '通知機能の読み込みに失敗しました';
+  }
 }
 const recorder = new HotkeyRecorder({
   onRecord: hotkey => { result.textContent = String(hotkey); },
@@ -283,6 +303,9 @@ function dispose() {
   document.removeEventListener('keydown', onDesktopKey);
   viewObserver.disconnect();
   systemTheme.removeEventListener?.('change', onSystemThemeChange);
+  notification?.remove();
+  notification = null;
 }
 window.__m0 = { state, shell, coreController, actions, pages, localSearch, localeCatalog, dispose };
 window.addEventListener('pagehide', dispose, { once: true });
+

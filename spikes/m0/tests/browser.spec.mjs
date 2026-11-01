@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('vanilla: Core Web Components are registered, theme and hotkey recorder work', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('./');
-  await page.evaluate(async () => Promise.all(['wa-page','wa-breadcrumb','wa-breadcrumb-item','wa-toast'].map(tag => customElements.whenDefined(tag))));
+  await page.evaluate(async () => Promise.all(['wa-page','wa-breadcrumb','wa-breadcrumb-item'].map(tag => customElements.whenDefined(tag))));
   await expect(page.locator('wa-page')).toBeVisible();
   await expect(page.locator('#site-shell')).toHaveAttribute('view', 'mobile');
   await page.locator('#toggle-nav').click();
@@ -148,8 +148,8 @@ test('preview loads without unexpected third-party assets or telemetry calls', a
     if (requestOrigin !== pageOrigin) unexpected.push({ type: request.resourceType(), url: request.url() });
   });
   await page.goto('./');
-  await page.evaluate(async () => customElements.whenDefined('wa-toast'));
   await page.locator('#notify').click();
+  await expect(page.locator('wa-toast-item')).toHaveCount(1);
   await page.locator('#theme').click();
   expect(unexpected).toEqual([]);
 });
@@ -479,6 +479,40 @@ test('performance: Vanilla startup does not request React page or optional i18ne
   });
 });
 
+test('performance: toast registration and chunk request wait for explicit action', async ({page}) => {
+  const toastRequests = [];
+  page.on('request', request => {
+    if (request.resourceType() === 'script' && /toast.*\.js(?:\?|$)/i.test(request.url())) toastRequests.push(request.url());
+  });
+  await page.goto('./');
+  expect(await page.evaluate(() => Boolean(customElements.get('wa-toast')))).toBe(false);
+  expect(toastRequests).toEqual([]);
+  await page.locator('#notify').click();
+  await page.locator('#notify').click();
+  await expect(page.locator('wa-toast-item')).toHaveCount(2);
+  expect(await page.evaluate(() => Boolean(customElements.get('wa-toast')))).toBe(true);
+  expect(new Set(toastRequests).size).toBe(1);
+});
+
+test('performance: disposing before deferred toast import resolves leaves no toast element', async ({page}) => {
+  let releaseToast;
+  const toastGate = new Promise(resolve => { releaseToast = resolve; });
+  let toastRequestSeen = false;
+  await page.route(/toast.*\.js/i, async route => {
+    toastRequestSeen = true;
+    await toastGate;
+    await route.continue();
+  });
+  await page.goto('./');
+  await page.locator('#notify').click();
+  await expect.poll(() => toastRequestSeen).toBe(true);
+  await page.evaluate(() => window.__m0.dispose());
+  releaseToast();
+  await expect.poll(() => page.evaluate(() => window.__m0.state.disposed)).toBe(true);
+  await expect(page.locator('wa-toast')).toHaveCount(0);
+  await expect(page.locator('wa-toast-item')).toHaveCount(0);
+});
+
 test('performance: React startup also leaves optional i18next unrequested', async ({page},testInfo) => {
   const requested = [];
   page.on('request', request => {
@@ -499,3 +533,4 @@ test('performance: React startup also leaves optional i18next unrequested', asyn
     contentType:'application/json'
   });
 });
+
