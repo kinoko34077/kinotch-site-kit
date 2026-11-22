@@ -17,7 +17,7 @@ Verified main branches (2026-10-18):
 - lyric_reader_page: static HTML and JS/assets, GitHub Pages oriented.
 - line-style-viewer: static HTML/CSS/JS, existing embedded Visual Editor distribution.
 Native Web Components and CSS custom properties form the browser-facing common path, not React-only shell. TypeScript/ESM source with built browser bundles. Provide thin React integration without controlling React's owned DOM. Vite consumers import npm-package-style artifacts; static sites can import pinned distributable ESM/CSS without installing a framework.
-Support tiers must be declared/tested explicitly: vanilla browser ESM P0; React/Vite P0; plain static HTML via pinned distribution P0; other frameworks P1 adapters; legacy browsers and no-JS content graceful fallback; native VST3/Canvas not automatically supported. No forced rewrite to Astro/Nuxt/Next/React.
+Support tiers must be declared/tested explicitly: vanilla browser ESM P0; React/Vite P0; plain static HTML via pinned distribution P0; other frameworks P1 adapters; legacy browsers and no-JS content graceful fallback; native VST3/Canvas not automatically supported. No forced rewrite to Astro/Nuxt/Next/React. Compatibility CI should follow the supported Node/TypeScript/browser/adapter matrix; do not maintain a Python 3.10/3.11 matrix for this library without a separately verified Python runtime or packaging requirement.
 
 ## S2. Module architecture and packages (provisional names, stable responsibilities)
 - core: typed SiteDefinition, schema validation, capability registry, lifecycle, configuration layering, route metadata, shared action/state contract and diagnostics.
