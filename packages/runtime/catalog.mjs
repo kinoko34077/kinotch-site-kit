@@ -11,7 +11,8 @@ export const standardFeatureLoaders = Object.freeze({
   seo: () => import('../features/seo.mjs'),
   history: () => import('../features/history.mjs'),
   i18n: () => import('../features/i18n.mjs'),
-  operation: () => import('../features/operation.mjs')
+  operation: () => import('../features/operation.mjs'),
+  'offline-cache': () => import('../features/offline-cache.mjs')
 });
 
 /**

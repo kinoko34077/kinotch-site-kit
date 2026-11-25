@@ -61,9 +61,17 @@ test('selected modules retain caller ordering and ignore duplicated IDs',async()
 });
 test('standard manifest loads only selected library functionality',async()=>{
   const c=createFeatureCatalog();
-  assert.deepEqual(c.available(),['actions','pages','search','seo','history','i18n','operation']);
+  assert.deepEqual(c.available(),['actions','pages','search','seo','history','i18n','operation','offline-cache']);
   const m=await c.loadSelected(['history']);
   assert.equal(typeof m.history.createHistory,'function');
-  for(const feature of ['actions','pages','search','seo','i18n','operation'])assert.equal(c.loaded(feature),false);
+  for(const feature of ['actions','pages','search','seo','i18n','operation','offline-cache'])assert.equal(c.loaded(feature),false);
   assert.equal(c.loaded('history'),true);
+});
+
+test('offline cache entry is opt-in and imports without registration or cache access',async()=>{
+  const c=createFeatureCatalog();
+  assert.equal(c.loaded('offline-cache'),false);
+  const mod=await c.load('offline-cache');
+  assert.equal(typeof mod.createPublicAssetCache,'function');
+  assert.equal(c.loaded('offline-cache'),true);
 });

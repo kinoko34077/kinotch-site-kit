@@ -26,7 +26,8 @@ const entries={
   seo:resolve(root,'features/seo.mjs'),
   history:resolve(root,'features/history.mjs'),
   operation:resolve(root,'features/operation.mjs'),
-  i18n:resolve(root,'features/i18n.mjs')
+  i18n:resolve(root,'features/i18n.mjs'),
+  'offline-cache':resolve(root,'features/offline-cache.mjs')
 };
 await rm(out,{recursive:true,force:true});
 await mkdir(out,{recursive:true});
@@ -77,7 +78,8 @@ const declarations={
   seo:resolve(root,'features/seo.d.mts'),
   history:resolve(root,'features/history.d.mts'),
   operation:resolve(root,'features/operation.d.mts'),
-  i18n:resolve(root,'features/i18n.d.mts')
+  i18n:resolve(root,'features/i18n.d.mts'),
+  'offline-cache':resolve(root,'features/offline-cache.d.mts')
 };
 const typeEntries={};
 await writeFile(join(out,'package.json'),JSON.stringify({
@@ -122,8 +124,8 @@ for(const key of Object.keys(entries))if(!entryMap[key])throw new Error('Missing
 const entryMeta=Object.entries(result.metafile.outputs).find(([,meta])=>
   meta.entryPoint && resolve(here,meta.entryPoint)===entries.runtime)?.[1];
 if(!entryMeta)throw new Error('Runtime metadata absent');
-if(entryMeta.imports.filter(x=>x.kind==='dynamic-import').length!==7){
-  throw new Error('Optional feature graph must have seven lazy imports');
+if(entryMeta.imports.filter(x=>x.kind==='dynamic-import').length!==8){
+  throw new Error('Optional feature graph must have eight lazy imports');
 }
 if(Object.keys(entryMeta.inputs).some(x=>x.includes('/features/'))){
   throw new Error('Runtime startup accidentally includes optional feature implementations');
@@ -154,6 +156,8 @@ await writeFile(probe,[
   "import {createHistory} from './static-kit/"+entryMap.history+"';",
   "import {createLocalization} from './static-kit/"+entryMap.i18n+"';",
   "import {createOperationTracker} from './static-kit/"+entryMap.operation+"';",
+  "import {createPublicAssetCache} from './static-kit/"+entryMap['offline-cache']+"';",
+  'const cache=createPublicAssetCache({scope:"https://example.com/app/",appId:"demo",version:"v1",assets:["index.html"]});void cache;',
   'const site:SiteDefinition=createSiteDefinition({id:"example",name:"Example",routes:[{id:"home",path:"/",title:"Home"}]});',
   'createVanillaNavigationAdapter({currentRouteId:"home"}).mount(document.createElement("div"),site).dispose();',
   'createReactStateAdapter(v=>{void v.name;}).mount({},site).dispose();',
@@ -190,6 +194,9 @@ if(op.acknowledgeSaved(ticket).phase!=='saved')throw Error('Static operation sta
 op.dispose();
 const catalog=(await load('runtime')).createFeatureCatalog();
 if(catalog.loaded('i18n'))throw Error('Optional i18n unexpectedly evaluated on catalog init');
+if(catalog.loaded('offline-cache'))throw Error('Offline cache unexpectedly loaded');
+const offline=await load('offline-cache');
+if(typeof offline.createPublicAssetCache!=='function')throw Error('Built offline cache entry missing');
 const localization=await catalog.load('i18n');
 if(typeof localization.createLocalization!=='function')throw Error('Built localized module missing');
 const locale=await localization.createLocalization({resources:{ja:{greeting:'こんにちは'},en:{greeting:'Hello'}},language:'ja'});

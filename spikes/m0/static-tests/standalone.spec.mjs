@@ -9,15 +9,15 @@ test('no-bundler static consumer loads hashed Core/Vanilla and optional UI only 
   await expect(page.locator('#mount-status')).toHaveText('独立HTMLで初期化完了');
   const manifest=await page.evaluate(()=>window.__staticFixture.manifest);
   expect(manifest.isRelease).toBe(false);
-  expect(Object.keys(manifest.entries)).toHaveLength(11);
-  expect(manifest.files.filter(f=>f.path.endsWith('.js'))).toHaveLength(13);
-  expect(Object.keys(manifest.types)).toHaveLength(11);
+  expect(Object.keys(manifest.entries)).toHaveLength(12);
+  expect(manifest.files.filter(f=>f.path.endsWith('.js'))).toHaveLength(14);
+  expect(Object.keys(manifest.types)).toHaveLength(12);
   expect(Object.keys(manifest.types).sort()).toEqual(Object.keys(manifest.entries).sort());
   for (const file of Object.values(manifest.types)) {
     expect(file.endsWith('.d.ts')).toBe(true);
     expect(manifest.files.some(item=>item.path===file)).toBe(true);
   }
-  expect(manifest.files.filter(f=>f.kind==='types')).toHaveLength(11);
+  expect(manifest.files.filter(f=>f.kind==='types')).toHaveLength(12);
   expect(manifest.files.every(f=>/^[0-9a-f]{64}$/.test(f.sha256))).toBe(true);
   await expect(page.locator('#navigation nav a')).toHaveCount(2);
   await expect(page.locator('#navigation nav a[aria-current="page"]')).toHaveText('ホーム');
@@ -27,6 +27,7 @@ test('no-bundler static consumer loads hashed Core/Vanilla and optional UI only 
   await expect(page.locator('#translation')).toHaveText('翻訳は未読込');
   const preClick=requests.map(x=>new URL(x.url).pathname);
   expect(preClick.filter(p=>p.includes(manifest.entries.i18n))).toEqual([]);
+  expect(preClick.filter(p=>p.includes(manifest.entries['offline-cache']))).toEqual([]);
   expect(preClick.every(p=>p.startsWith('/probe/'))).toBe(true);
   const coreModulePath='/probe/kit/'+manifest.entries.core;
   expect(preClick).toContain(coreModulePath);
@@ -55,4 +56,38 @@ test('self-hosted fixture fails closed on missing paths, forbids escaping artifa
   expect(missing.status()).toBe(404);
   const escape=await request.get('./kit/../../../../etc/passwd');
   expect(escape.status()).toBe(404);
+});
+
+test('explicit offline-cache entry isolates real browser CacheStorage and retains last good',async({page})=>{
+  await page.goto('./');
+  await expect(page.locator('#mount-status')).toHaveText('独立HTMLで初期化完了');
+  const result=await page.evaluate(async()=>{
+    const manifest=window.__staticFixture.manifest;
+    const {createPublicAssetCache}=await import(new URL('./kit/'+manifest.entries['offline-cache'],location.href));
+    const scope=new URL('./',location.href).href, url=new URL('index.html',scope).href;
+    let failure=false;
+    const options={scope,appId:'static-offline-fixture',version:'v2',assets:['index.html'],
+      fetcher:async()=>failure?new Response('unavailable',{status:503}):
+        new Response('GOOD',{headers:{vary:'Accept-Encoding'}})};
+    const own=createPublicAssetCache(options);
+    const other=createPublicAssetCache({...options,appId:'static-offline-other'});
+    const old=createPublicAssetCache({...options,version:'v1'});
+    try {
+      await (await caches.open(other.cacheName)).put(url,new Response('OTHER'));
+      await (await caches.open(old.cacheName)).put(url,new Response('OLD'));
+      const fresh=await (await own.handle(new Request(url))).text();
+      failure=true;
+      const fallback=await (await own.handle(new Request(url))).text();
+      const cached=await (await own.handle(new Request(url),'cache-first')).text();
+      const outOfScope=own.handle(new Request(new URL('../other/index.html',scope)))===null;
+      await own.removeVersion('v1');
+      const names=await caches.keys();
+      return {fresh,fallback,cached,outOfScope,oldRemoved:!names.includes(old.cacheName),
+        otherPreserved:names.includes(other.cacheName),ownPreserved:names.includes(own.cacheName)};
+    } finally {
+      await Promise.all([own,other,old].map(x=>caches.delete(x.cacheName)));
+    }
+  });
+  expect(result).toEqual({fresh:'GOOD',fallback:'GOOD',cached:'GOOD',outOfScope:true,
+    oldRemoved:true,otherPreserved:true,ownPreserved:true});
 });

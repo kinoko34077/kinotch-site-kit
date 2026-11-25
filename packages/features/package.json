@@ -32,6 +32,10 @@
     "./operation": {
       "types": "./operation.d.mts",
       "default": "./operation.mjs"
+    },
+    "./offline-cache": {
+      "types": "./offline-cache.d.mts",
+      "default": "./offline-cache.mjs"
     }
   },
   "devDependencies": {
