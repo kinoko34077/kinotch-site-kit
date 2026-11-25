@@ -74,6 +74,10 @@ test('HTTP 503 and network rejection retain last good public asset', async () =>
   f.next(() => { throw Error('offline'); });
   assert.equal(await (await f.kit.handle(request())).text(), 'GOOD');
   assert.equal(await (await f.kit.handle(request(), 'cache-first')).text(), 'GOOD');
+  f.next(() => response('removed', {status:404}));
+  assert.equal((await f.kit.handle(request())).status, 404);
+  f.next(() => response('forbidden', {status:403}));
+  assert.equal((await f.kit.handle(request())).status, 403);
 });
 test('cache miss preserves HTTP failure or network rejection rather than fake success', async () => {
   const f = fixture();
@@ -85,6 +89,7 @@ test('cache miss preserves HTTP failure or network rejection rather than fake su
 test('successful public response refreshes own cache and omits credentials/redirects', async () => {
   const f = fixture();
   await seed(f, f.kit.cacheName, 'OLD');
+  f.next(() => response('fresh', {headers:{vary:'Accept-Encoding'}}));
   assert.equal(await (await f.kit.handle(request())).text(), 'fresh');
   assert.equal(await (await f.kit.handle(request(), 'cache-first')).text(), 'fresh');
   assert.deepEqual(f.calls, [[url, {credentials:'omit', redirect:'error', cache:'no-store'}]]);

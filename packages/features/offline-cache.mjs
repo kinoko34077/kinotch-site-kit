@@ -31,7 +31,8 @@ export function createPublicAssetCache({scope, appId, version, assets, storage =
     return response?.status === 200 && !response.redirected &&
       ['basic', 'default'].includes(response.type) &&
       !/(?:^|,)\s*(?:private|no-store|no-cache)\b/i.test(response.headers.get('cache-control') || '') &&
-      !response.headers.get('vary');
+      // Compression negotiation does not vary the decoded public asset bytes.
+      (!response.headers.get('vary') || /^accept-encoding$/i.test(response.headers.get('vary').trim()));
   }
   async function read(url) {
     try {
@@ -60,7 +61,10 @@ export function createPublicAssetCache({scope, appId, version, assets, storage =
       if (cached) return cached;
       throw error;
     }
-    if (!fresh.ok) return (await read(url)) || fresh;
+    // Do not mask authoritative 4xx removals/denials with old content.
+    if (fresh.status >= 500 || fresh.status === 408 || fresh.status === 429) {
+      return (await read(url)) || fresh;
+    }
     return fresh;
   }
   function handle(request, strategy = 'network-first') {
