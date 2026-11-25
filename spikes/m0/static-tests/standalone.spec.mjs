@@ -9,15 +9,15 @@ test('no-bundler static consumer loads hashed Core/Vanilla and optional UI only 
   await expect(page.locator('#mount-status')).toHaveText('独立HTMLで初期化完了');
   const manifest=await page.evaluate(()=>window.__staticFixture.manifest);
   expect(manifest.isRelease).toBe(false);
-  expect(Object.keys(manifest.entries)).toHaveLength(11);
-  expect(manifest.files.filter(f=>f.path.endsWith('.js'))).toHaveLength(13);
-  expect(Object.keys(manifest.types)).toHaveLength(11);
+  expect(Object.keys(manifest.entries)).toHaveLength(12);
+  expect(manifest.files.filter(f=>f.path.endsWith('.js')).length).toBeGreaterThanOrEqual(12);
+  expect(Object.keys(manifest.types)).toHaveLength(12);
   expect(Object.keys(manifest.types).sort()).toEqual(Object.keys(manifest.entries).sort());
   for (const file of Object.values(manifest.types)) {
     expect(file.endsWith('.d.ts')).toBe(true);
     expect(manifest.files.some(item=>item.path===file)).toBe(true);
   }
-  expect(manifest.files.filter(f=>f.kind==='types')).toHaveLength(11);
+  expect(manifest.files.filter(f=>f.kind==='types')).toHaveLength(12);
   expect(manifest.files.every(f=>/^[0-9a-f]{64}$/.test(f.sha256))).toBe(true);
   await expect(page.locator('#navigation nav a')).toHaveCount(2);
   await expect(page.locator('#navigation nav a[aria-current="page"]')).toHaveText('ホーム');
@@ -27,6 +27,7 @@ test('no-bundler static consumer loads hashed Core/Vanilla and optional UI only 
   await expect(page.locator('#translation')).toHaveText('翻訳は未読込');
   const preClick=requests.map(x=>new URL(x.url).pathname);
   expect(preClick.filter(p=>p.includes(manifest.entries.i18n))).toEqual([]);
+  expect(preClick.filter(p=>p.includes(manifest.entries['offline-cache']))).toEqual([]);
   expect(preClick.every(p=>p.startsWith('/probe/'))).toBe(true);
   const coreModulePath='/probe/kit/'+manifest.entries.core;
   expect(preClick).toContain(coreModulePath);

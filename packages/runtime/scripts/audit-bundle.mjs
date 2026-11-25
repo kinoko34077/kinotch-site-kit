@@ -27,7 +27,7 @@ try{
   if(!entry)throw new Error('Missing catalog entry in esbuild metafile');
   const [entryPath,entryMeta]=entry;
   const lazy=entryMeta.imports.filter(x=>x.kind==='dynamic-import');
-  if(lazy.length!==7)throw new Error('Expected exactly seven independently lazy optional modules, got '+lazy.length);
+  if(lazy.length!==8)throw new Error('Expected exactly eight independently lazy optional modules, got '+lazy.length);
   if(entryMeta.imports.some(x=>x.kind!=='dynamic-import')){
     // Native runtime entry has no static feature imports. Separate static shared helper
     // files would require explicit performance review and a budget adjustment.
@@ -55,7 +55,7 @@ try{
     generatedBy:'packages/runtime/scripts/audit-bundle.mjs',
     entryGzip:initial.gzip,entryBrotli:initial.brotli,initialModules:Object.keys(entryMeta.inputs),
     lazyChunkCount:lazy.length,outputs:records,
-    notes:['All five features live behind ESM dynamic import; none is imported at catalog initialization.',
+    notes:['All eight features live behind ESM dynamic import; none is imported at catalog initialization.',
     'Bundled chunk sizes are not a substitute for real mobile load/input/JS heap measurements.',
     'No notice/license/legal validation or released package is implied.']};
   await mkdir(artifact,{recursive:true});

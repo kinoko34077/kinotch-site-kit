@@ -2,7 +2,7 @@
 
 Run `npm install --prefix packages/runtime` and `npm install --prefix packages/features`, then `node packages/runtime/scripts/build-static-kit.mjs`. The read-only CI uses exact pinned versions in those dev dependencies, without publishing or deploying a package.
 
-Output: `packages/runtime/artifacts/static-kit/manifest.json` with named, **content-hashed** ESM entries, co-located `.d.ts` declarations for the 11 named entries, `manifest.types` lookup, sha256 checksums and raw/gzip/Brotli sizes; each emitted JS file is included in the ephemeral 14-day GitHub Actions artifact. Every named entry and vendor dependency must resolve inside the self-hosted artifact, with no bare module imports or third-party network.
+Output: `packages/runtime/artifacts/static-kit/manifest.json` with named, **content-hashed** ESM entries, co-located `.d.ts` declarations for the 12 named entries, `manifest.types` lookup, sha256 checksums and raw/gzip/Brotli sizes; each emitted JS file is included in the ephemeral 14-day GitHub Actions artifact. Every named entry and vendor dependency must resolve inside the self-hosted artifact, with no bare module imports or third-party network.
 
 A static host may copy **the entire manifest and all emitted files** into its own immutable, versioned asset directory and select an entry explicitly. This is a consumer-owned *future integration procedure*, not a change deployed to any existing consumer:
 
@@ -21,7 +21,7 @@ const kit = core.createSiteDefinition({
 
 The example does **not** automatically validate artifact integrity against a trusted external digest, and dynamic imports do not become cryptographically signed because a manifest includes hashes. Production distribution must use site-owned allowlisted manifests/pinned commit or release digests, actual license/NOTICE/SBOM acceptance, security/compatibility review and a rollback strategy; no floating `latest`.
 
-Smoke contracts run in Node against **built ESM output**, including core config, bounded history, verified save state and optional i18next activation. Runtime catalog's seven optional features remain behind dynamic imports; consumers do not have to import the runtime at all for just the core. No CSS is bundled here; site-owned theme styling and the separately evaluated Web Awesome theme remain a distinct optional asset/package.
+Smoke contracts run in Node against **built ESM output**, including core config, bounded history, verified save state and optional i18next activation. Runtime catalog's eight optional features remain behind dynamic imports; consumers do not have to import the runtime at all for just the core. No CSS is bundled here; site-owned theme styling and the separately evaluated Web Awesome theme remain a distinct optional asset/package.
 
 ## Independent no-framework browser consumer acceptance slice
 
@@ -35,6 +35,8 @@ Do not confuse this with actual full production static site admission: no CSS as
 
 ## Typed consumer proof (experimental)
 
-The build now copies source `.d.mts` into sibling `.d.ts` files named for each hashed JavaScript entry, writes an artifact-local `package.json` with `type: module`, and rewrites relative Core type imports to the *actual* emitted Core filename. The manifest exposes `types` for 11 named entries; declarations do **not** require runtime React, Vite, or dynamic HTTP requests. The same build runs strict TypeScript 5.9.3 NodeNext compilation of a **new external consumer probe** that imports compiled Core, Vanilla/React adapters, SEO, history, operation, and i18n; expected-invalid type cases must be rejected.
+The build now copies source `.d.mts` into sibling `.d.ts` files named for each hashed JavaScript entry, writes an artifact-local `package.json` with `type: module`, and rewrites relative Core type imports to the *actual* emitted Core filename. The manifest exposes `types` for 12 named entries; declarations do **not** require runtime React, Vite, or dynamic HTTP requests. The same build runs strict TypeScript 5.9.3 NodeNext compilation of a **new external consumer probe** that imports compiled Core, Vanilla/React adapters, SEO, history, operation, and i18n; expected-invalid type cases must be rejected.
 
 Browser startup cost is still governed by emitted JavaScript modules, not the declaration files. The type filenames follow their paired JS entry for TypeScript resolution; per-file SHA-256 in the manifest identifies exact declaration content. To prevent stale type caches, pin and copy the **complete artifact by version**, not cherry-pick individual files. Do not treat this experimental proof as stable semantic-versioned npm publication or proof of browser support for every type consumer.
+
+The optional `offline-cache` entry exposes only the public static asset cache primitive. It does not install a Service Worker or perform requests on import. Native mock regression tests cover scope, cache ownership, network/HTTP errors and quota failure. Static distribution checks the exported entry and zero startup request; physical offline behavior is still unaccepted.

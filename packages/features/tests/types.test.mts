@@ -48,3 +48,10 @@ const status=createOperationTracker({onChange(snapshot:OperationSnapshot){void s
 status.markDirty();const ticket=status.beginSave();if(ticket)status.acknowledgeSaved(ticket);status.dispose();
 // @ts-expect-error onChange must be function
 createOperationTracker({onChange:'save'});
+
+import {createPublicAssetCache} from '../offline-cache.mjs';
+const cache = createPublicAssetCache({scope:'https://example.com/app/',appId:'app',version:'v1',assets:['index.html']});
+const cached:Promise<Response>|null = cache.handle(new Request('https://example.com/app/index.html'),'cache-first');
+void cached;
+// @ts-expect-error unsupported strategy
+cache.handle(new Request('https://example.com/app/index.html'),'stale');
